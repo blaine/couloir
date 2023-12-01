@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Chat App</title>
+  <style>
+    /* Add some basic styling */
+    .message-container {
+      border: 1px solid #ccc;
+      padding: 10px;
+      height: 300px;
+      overflow-y: scroll;
+    }
+  </style>
+</head>
+<body>
+  Couloir
+
+  <div class="message-container">
+    <!-- Messages will be displayed here -->
+  </div>
+  
+  <form action="/messages" method="post">
+    <input type="text" id="message-input" name="message" placeholder="Type your message...">
+    <button type="submit">Send</button>
+  </form>
+</body>
+</html>
