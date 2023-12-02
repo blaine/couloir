@@ -6,7 +6,7 @@ import crypto from "crypto"
 const app = express()
 
 // Serve static files from the 'data' directory
-app.use(express.static(path.join(__dirname, "app")))
+app.use(express.static(path.join(__dirname, "..", "app")))
 app.use(express.urlencoded({ extended: true }))
 
 app.get("/messages-list", async (req, res) => {
