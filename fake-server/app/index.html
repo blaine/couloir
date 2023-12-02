@@ -11,6 +11,88 @@
       overflow-y: scroll;
     }
   </style>
+
+  <script>
+    let messages = {}
+
+    async function fetchMessageList() {
+      let list = await fetch('/messages-list', {
+        method: 'GET',
+        headers: {
+          'If-None-Match': Object.keys(messages).length
+        }
+      })
+      let raw =  await list.text()
+      return raw.split("\n")
+    }
+
+    async function computeRanges(remoteMessageList) {
+      await fetchMessageList()
+
+      let start = -1
+      let end = -1
+      ranges = []
+      for (let i = 0; i < remoteMessageList.length; i++) {
+
+        // if we have a message, break the current range and continue
+        if (messages[remoteMessageList[i]]) {
+          if (start != -1) {
+            end = i - 1
+            ranges.push([start, end])
+            start = -1
+          }
+          continue
+        }
+
+        // otherwise, if we don't have a range, start a new one
+        if (start == -1) start = i
+      }
+      console.log(start, end)
+      if (start != -1) {
+        end = remoteMessageList.length - 1
+        ranges.push([start, end])
+      }
+
+      console.log({ranges})
+      return ranges
+    }
+
+    async function getMessages() {
+      let remoteMessageList = await fetchMessageList()
+      let ranges = await computeRanges(remoteMessageList)
+
+      if (ranges.length == 0) return
+
+      let q = ranges.map((r) => r.join('-')).join(',')
+
+      let response = await fetch('/messages?q=' + q, {
+        method: 'GET',
+        headers: {
+          'If-Match': remoteMessageList.length
+        }
+      })
+
+      if (response.status != 200) return
+
+      let raw = await response.text()
+      console.log({raw})
+      let newMessages = raw.split("\n")
+      for (let m of newMessages) {
+        let hash = await sha256(m)
+        messages[hash] = m
+      }
+
+      return messages
+    }
+
+    async function sha256(str) {
+      const buffer = new TextEncoder().encode(str);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      return hashHex;
+    }
+  </script>
 </head>
 <body>
   Couloir
