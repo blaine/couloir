@@ -18,7 +18,6 @@ app.get("/messages-list", async (req, res) => {
       return b.localeCompare(a)
     })
     .join("\n")
-  console.log(sorted)
   res.send(sorted)
 })
 
