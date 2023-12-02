@@ -9,7 +9,7 @@ fs.stat("data").catch(() => {
   fs.mkdir("data")
 })
 
-app.use(express.static(path.join(__dirname, "app")))
+app.use(express.static(path.join(__dirname, "..", "app")))
 app.use(express.urlencoded())
 
 /**
