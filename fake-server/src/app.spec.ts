@@ -42,10 +42,12 @@ describe("messages server", () => {
           await request.post("/reset").expect(200)
           await request
             .post("/messages")
-            .send(JSON.stringify({ message: "hello" }))
+            .send({ message: "hello" })
+            .set("Content-type", "application/json")
           await request
             .post("/messages")
-            .send(JSON.stringify({ message: "world" }))
+            .send({ message: "world" })
+            .set("Content-type", "application/json")
         })
         it("responds with a newline-separated list of the message IDs as text", async () => {
           const response = await request.get("/messages-list")
@@ -96,6 +98,27 @@ describe("messages server", () => {
         context("with no if-match header", () => {
           it("responds 412 Precondition Failed", async () => {
             await request.get("/messages?q=0-0").expect(412)
+          })
+        })
+
+        context("with a valid if-match header", () => {
+          it("responds 400 for a bad range")
+          it("responsds with the messages specified by the range", async () => {
+            await request.post("/reset")
+            await request.post("/messages").send({ message: "one" })
+            await request.post("/messages").send({ message: "two" })
+            await request.post("/messages").send({ message: "three" })
+            await request.post("/messages").send({ message: "four" })
+            await request.post("/messages").send({ message: "five" })
+            await request.post("/messages").send({ message: "six" })
+            const response = await request
+              .get("/messages?q=0-2,4-5")
+              .set("if-match", "6")
+              .expect(200)
+            assertThat(
+              response.text.split("\n"),
+              equalTo("one\ntwo\nthree\nfive\nsix")
+            )
           })
         })
       })

@@ -70,7 +70,7 @@ app.get("/messages", async (req, res) => {
     res
       .status(412)
       .send(
-        "Messages-list out of date: you expected ${etag} messages but there are ${entries.length} messages"
+        "It looks like your messages-list is out of date. Pass the 'if-match' header with the current messages-list count"
       )
     return
   }
@@ -78,6 +78,7 @@ app.get("/messages", async (req, res) => {
   // Otherwise, we can send the messages
   let qs = q.split(",")
   for (let i = 0; i < qs.length; i++) {
+    console.log(`Processing range ${i}`)
     let range = qs[i]
     const [s, e] = range.split("-")
     let start = parseInt(s)
@@ -97,7 +98,7 @@ app.get("/messages", async (req, res) => {
     for (let i = start; i <= end; i++) {
       let hash = entries[i]
       let data = await fs.readFile(`data/${hash}`)
-      console.log(hash, data)
+      console.log(hash, data.toString())
       res.write(data)
       res.write("\n")
     }
@@ -110,6 +111,7 @@ app.get("/messages", async (req, res) => {
 app.post("/messages", async (req, res) => {
   // we do the stringification server-side to ensure that the client can't send
   // a malformed message
+  // TODO: do we need to worry about this? we could have the client send both the ID and some text, and we just act as a key/value store
   let message = JSON.stringify(req.body)
   let hash = crypto.createHash("sha256").update(message).digest("hex")
   await fs.writeFile(`data/${hash}`, JSON.stringify(req.body))
