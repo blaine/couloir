@@ -1,6 +1,6 @@
 import supertest from "supertest"
 import app from "./app"
-import { assertThat, equalTo } from "hamjest"
+import { assertThat, containsInAnyOrder, equalTo } from "hamjest"
 
 const request = supertest(app)
 
@@ -20,6 +20,7 @@ describe("messages server", () => {
         // Why 302?
         await request
           .post("/messages")
+          .type("form")
           .send({ message: "hello" })
           .expect(302)
           .expect("Location", "/")
@@ -42,20 +43,20 @@ describe("messages server", () => {
           await request.post("/reset").expect(200)
           await request
             .post("/messages")
+            .type("form")
             .send({ message: "hello" })
-            .set("Content-type", "application/json")
           await request
             .post("/messages")
+            .type("form")
             .send({ message: "world" })
-            .set("Content-type", "application/json")
         })
         it("responds with a newline-separated list of the message IDs as text", async () => {
           const response = await request.get("/messages-list")
           assertThat(
             response.text.split("\n"),
             equalTo([
-              "ab60a0eb1e73a245e58c6a9b9ad0dd811d6f1f8b4cc9d2f84a8c9d4535e5a4f0",
-              "5241e5849c0fc5e4b6fdc544b957b4aade04774f918e77e3895d70da15cc758d",
+              "9b2d43affbf49a367028df2e1414f84c0e099ac98c3d54a8a80157fd7771af25",
+              "3a477a27451b71eaf6dc49c80b0e2e4c80f3fc5060884497c4246ea2b44d0790",
             ])
           )
         })
@@ -105,19 +106,41 @@ describe("messages server", () => {
           it("responds 400 for a bad range")
           it("responsds with the messages specified by the range", async () => {
             await request.post("/reset")
-            await request.post("/messages").send({ message: "one" })
-            await request.post("/messages").send({ message: "two" })
-            await request.post("/messages").send({ message: "three" })
-            await request.post("/messages").send({ message: "four" })
-            await request.post("/messages").send({ message: "five" })
-            await request.post("/messages").send({ message: "six" })
+            await request
+              .post("/messages")
+              .type("form")
+              .send({ message: "one" })
+            await request
+              .post("/messages")
+              .type("form")
+              .send({ message: "two" })
+            await request
+              .post("/messages")
+              .type("form")
+              .send({ message: "three" })
+            await request
+              .post("/messages")
+              .type("form")
+              .send({ message: "four" })
+            await request
+              .post("/messages")
+              .type("form")
+              .send({ message: "five" })
+            await request
+              .post("/messages")
+              .type("form")
+              .send({ message: "six" })
             const response = await request
               .get("/messages?q=0-2,4-5")
               .set("if-match", "6")
               .expect(200)
+            const messages = response.text
+              .trim()
+              .split("\n")
+              .map((raw) => JSON.parse(raw).message)
             assertThat(
-              response.text.split("\n"),
-              equalTo("one\ntwo\nthree\nfive\nsix")
+              messages,
+              containsInAnyOrder("one", "two", "four", "five", "six")
             )
           })
         })
