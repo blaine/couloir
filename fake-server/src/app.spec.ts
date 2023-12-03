@@ -5,10 +5,17 @@ import { assertThat, containsInAnyOrder, equalTo } from "hamjest"
 const request = supertest(app)
 
 describe("messages server", () => {
+  // contract tests describe the behaviour of the server
+  // as a "black box". They only use public-facing behaviour,
+  // and could be run against other implementations of the server.
   describe("contract", () => {
-    // contract tests describe the behaviour of the server
-    // as a "black box". They only use public-facing behaviour,
-    // and could be run against other implementations of the server.
+    const postMessage = async (message: string) => {
+      await request.post("/messages").type("form").send({ message })
+    }
+
+    const reset = async () => {
+      await request.post("/reset")
+    }
     describe("POST /reset", () => {
       it("responds 200 OK", async () => {
         await request.post("/reset").expect(200)
@@ -17,7 +24,7 @@ describe("messages server", () => {
 
     describe("POST /messages", () => {
       it("responds 302 redirect", async () => {
-        // Why 302?
+        // TODO: Why 302? -- @matt
         await request
           .post("/messages")
           .type("form")
@@ -31,7 +38,7 @@ describe("messages server", () => {
       it("responds 200 OK", async () =>
         await request.get("/messages-list").expect(200))
       context("when there are no messages", () => {
-        before(async () => await request.post("/reset"))
+        before(reset)
         it("responds with an empty list as text", async () => {
           const response = await request.get("/messages-list")
           assertThat(response.text, equalTo(""))
@@ -39,17 +46,14 @@ describe("messages server", () => {
       })
 
       context("when a few messages have been posted", () => {
-        before(async () => {
-          await request.post("/reset").expect(200)
-          await request
-            .post("/messages")
-            .type("form")
-            .send({ message: "hello" })
-          await request
-            .post("/messages")
-            .type("form")
-            .send({ message: "world" })
-        })
+        before(
+          async () =>
+            await Promise.all([
+              reset(),
+              postMessage("hello"),
+              postMessage("world"),
+            ])
+        )
         it("responds with a newline-separated list of the message IDs as text", async () => {
           const response = await request.get("/messages-list")
           assertThat(
@@ -103,33 +107,18 @@ describe("messages server", () => {
         })
 
         context("with a valid if-match header", () => {
+          // TODO: tests for bad ranges
           it("responds 400 for a bad range")
           it("responsds with the messages specified by the range", async () => {
             await request.post("/reset")
-            await request
-              .post("/messages")
-              .type("form")
-              .send({ message: "one" })
-            await request
-              .post("/messages")
-              .type("form")
-              .send({ message: "two" })
-            await request
-              .post("/messages")
-              .type("form")
-              .send({ message: "three" })
-            await request
-              .post("/messages")
-              .type("form")
-              .send({ message: "four" })
-            await request
-              .post("/messages")
-              .type("form")
-              .send({ message: "five" })
-            await request
-              .post("/messages")
-              .type("form")
-              .send({ message: "six" })
+            await Promise.all([
+              postMessage("one"),
+              postMessage("two"),
+              postMessage("three"),
+              postMessage("four"),
+              postMessage("five"),
+              postMessage("six"),
+            ])
             const response = await request
               .get("/messages?q=0-2,4-5")
               .set("if-match", "6")

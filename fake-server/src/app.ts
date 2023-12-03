@@ -111,7 +111,7 @@ app.get("/messages", async (req, res) => {
 app.post("/messages", async (req, res) => {
   // we do the stringification server-side to ensure that the client can't send
   // a malformed message
-  // TODO: do we need to worry about this? we could have the client send both the ID and some text, and we just act as a key/value store
+  // TODO: do we need to worry about this? we could have the client send both the ID and some text, and we just act as a key/value store -- @matt
   let message = JSON.stringify(req.body)
   let hash = crypto.createHash("sha256").update(message).digest("hex")
   await fs.writeFile(`data/${hash}`, JSON.stringify(req.body))
