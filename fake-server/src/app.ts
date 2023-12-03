@@ -67,7 +67,11 @@ app.get("/messages", async (req, res) => {
   // requesting against doesn't match our current, return a 412, at which point
   // the client can try again with the new messages-list
   if (!etag || parseInt(etag) !== entries.length) {
-    res.status(412).send("Messages-list out of date")
+    res
+      .status(412)
+      .send(
+        "Messages-list out of date: you expected ${etag} messages but there are ${entries.length} messages"
+      )
     return
   }
 
@@ -75,7 +79,7 @@ app.get("/messages", async (req, res) => {
   let qs = q.split(",")
   for (let i = 0; i < qs.length; i++) {
     let range = qs[i]
-    let [s, e] = range.split("-")
+    const [s, e] = range.split("-")
     let start = parseInt(s)
     let end = parseInt(e)
     if (

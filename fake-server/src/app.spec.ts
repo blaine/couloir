@@ -59,5 +59,46 @@ describe("messages server", () => {
         })
       })
     })
+
+    describe("GET /messages", () => {
+      describe("guarding against invalid queries", () => {
+        context("with no query", () => {
+          it("responds 400 Bad Request", async () =>
+            await request.get("/messages").expect(400))
+        })
+        context("with an invalid query", () => {
+          it("responds 400 Bad Request", async () =>
+            await request.get("/messages?q=").expect(400))
+        })
+      })
+      describe("checking the ETag", () => {
+        context("with no if-match header", () => {
+          it("responds 412 Precondition Failed", async () => {
+            await request.get("/messages?q=0-0").expect(412)
+          })
+        })
+
+        context(
+          "with an if-match header that doesn't match the current message count",
+          () => {
+            it("responds 412 Precondition Failed", async () => {
+              const actualMessageCount = (
+                await request.get("/messages-list")
+              ).text.split("\n").length
+              const invalidEtag = actualMessageCount + 1
+              await request
+                .get("/messages?q=0-0")
+                .set("if-match", String(invalidEtag))
+                .expect(412)
+            })
+          }
+        )
+        context("with no if-match header", () => {
+          it("responds 412 Precondition Failed", async () => {
+            await request.get("/messages?q=0-0").expect(412)
+          })
+        })
+      })
+    })
   })
 })
