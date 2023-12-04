@@ -1,6 +1,7 @@
 import supertest from "supertest"
 import app from "./app"
 import { assertThat, containsInAnyOrder, equalTo } from "hamjest"
+import crypto from "crypto"
 
 const request = supertest(app)
 
@@ -10,37 +11,41 @@ describe("messages server", () => {
   // and could be run against other implementations of the server.
   describe("contract", () => {
     const postMessage = async (message: string) => {
-      await request.post("/messages").type("form").send({ message })
+      const payload = JSON.stringify({ message })
+      const id = crypto.createHash("sha256").update(payload).digest("hex")
+      await request
+        .post(`/docs/${id}`)
+        .set({
+          "Content-Type": "text/plain",
+        })
+        .send(payload)
     }
 
     const reset = async () => {
-      await request.delete("/messages")
+      await request.delete("/docs").expect(200)
     }
     describe("DELETE /messages", () => {
       it("responds 200 OK", async () => {
-        await request.delete("/messages").expect(200)
+        await request.delete("/docs").expect(200)
       })
     })
 
-    describe("POST /messages", () => {
-      it("responds 302 redirect", async () => {
-        // TODO: Why 302? -- @matt
+    describe("POST /docs/:id", () => {
+      it("responds 200 OK", async () => {
         await request
-          .post("/messages")
-          .type("form")
-          .send({ message: "hello" })
-          .expect(302)
-          .expect("Location", "/")
+          .post("/docs/some-id")
+          .set({ "Content-type": "text/plain" })
+          .send(JSON.stringify({ message: "hello" }))
+          .expect(200)
       })
     })
 
-    describe("GET /messages-list", () => {
-      it("responds 200 OK", async () =>
-        await request.get("/messages-list").expect(200))
+    describe("GET /ids", () => {
+      it("responds 200 OK", async () => await request.get("/ids").expect(200))
       context("when there are no messages", () => {
         before(reset)
         it("responds with an empty list as text", async () => {
-          const response = await request.get("/messages-list")
+          const response = await request.get("/ids")
           assertThat(response.text, equalTo(""))
         })
       })
@@ -55,7 +60,7 @@ describe("messages server", () => {
             ])
         )
         it("responds with a newline-separated list of the message IDs as text", async () => {
-          const response = await request.get("/messages-list")
+          const response = await request.get("/ids")
           assertThat(
             response.text.split("\n"),
             equalTo([
@@ -71,17 +76,17 @@ describe("messages server", () => {
       describe("guarding against invalid queries", () => {
         context("with no query", () => {
           it("responds 400 Bad Request", async () =>
-            await request.get("/messages").expect(400))
+            await request.get("/docs").expect(400))
         })
         context("with an invalid query", () => {
           it("responds 400 Bad Request", async () =>
-            await request.get("/messages?q=").expect(400))
+            await request.get("/docs?q=").expect(400))
         })
       })
       describe("checking the ETag", () => {
         context("with no if-match header", () => {
           it("responds 412 Precondition Failed", async () => {
-            await request.get("/messages?q=0-0").expect(412)
+            await request.get("/docs?q=0-0").expect(412)
           })
         })
 
@@ -94,7 +99,7 @@ describe("messages server", () => {
               ).text.split("\n").length
               const invalidEtag = actualMessageCount + 1
               await request
-                .get("/messages?q=0-0")
+                .get("/docs?q=0-0")
                 .set("if-match", String(invalidEtag))
                 .expect(412)
             })
@@ -102,7 +107,7 @@ describe("messages server", () => {
         )
         context("with no if-match header", () => {
           it("responds 412 Precondition Failed", async () => {
-            await request.get("/messages?q=0-0").expect(412)
+            await request.get("/docs?q=0-0").expect(412)
           })
         })
 
@@ -120,7 +125,7 @@ describe("messages server", () => {
               postMessage("six"),
             ])
             const response = await request
-              .get("/messages?q=0-2,4-5")
+              .get("/docs?q=0-2,4-5")
               .set("if-match", "6")
               .expect(200)
             const messages = response.text
