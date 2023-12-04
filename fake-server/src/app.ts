@@ -12,7 +12,7 @@ fs.stat("data").catch(() => {
 app.use(express.static(path.join(__dirname, "..", "app")))
 app.use(express.urlencoded())
 
-app.post("/reset", async (_, res) => {
+app.delete("/messages", async (_, res) => {
   const entries = await fs.readdir("data")
   await Promise.all(entries.map((entry) => fs.unlink(`data/${entry}`)))
   res.end()

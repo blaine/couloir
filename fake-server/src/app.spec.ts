@@ -14,11 +14,11 @@ describe("messages server", () => {
     }
 
     const reset = async () => {
-      await request.post("/reset")
+      await request.delete("/messages")
     }
-    describe("POST /reset", () => {
+    describe("DELETE /messages", () => {
       it("responds 200 OK", async () => {
-        await request.post("/reset").expect(200)
+        await request.delete("/messages").expect(200)
       })
     })
 
@@ -110,7 +110,7 @@ describe("messages server", () => {
           // TODO: tests for bad ranges
           it("responds 400 for a bad range")
           it("responsds with the messages specified by the range", async () => {
-            await request.post("/reset")
+            await reset()
             await Promise.all([
               postMessage("one"),
               postMessage("two"),
