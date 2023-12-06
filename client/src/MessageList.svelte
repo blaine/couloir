@@ -8,7 +8,7 @@
 
   const dispatch = createEventDispatcher();
 
-  export let chats;
+  export let messages;
 
   const [send, receive] = crossfade({
     duration: d => Math.sqrt(d * 200),
@@ -29,7 +29,7 @@
   });
 </script>
 
-{#each chats as chat (chat.msgId)}
+{#each $messages as chat}
   <article
     class:user={chat.user === $user}
     in:fade
@@ -47,7 +47,7 @@
       class="msg"
       style="background-color: {chat.user !== $user && toHSL(chat.user)}"
     >
-      {chat.msg}
+      {chat.message}
       {#if chat.user === $user}
         <button
           class="delete"

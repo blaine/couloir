@@ -26,7 +26,7 @@ app.get("/messages-list", async (req, res) => {
   let entries = await fs.readdir("data")
   let sorted = entries
     .sort((a, b) => {
-      return b.localeCompare(a)
+      return a.localeCompare(b)
     })
     .join("\n")
   res.send(sorted)
@@ -70,7 +70,7 @@ app.get("/messages", async (req, res) => {
     res
       .status(412)
       .send(
-        "It looks like your messages-list is out of date. Pass the 'if-match' header with the current messages-list count"
+        `It looks like your messages-list is out of date. Pass the 'if-match' header with the current messages-list count (got ${etag}, expected ${entries.length})`
       )
     return
   }
@@ -91,7 +91,7 @@ app.get("/messages", async (req, res) => {
       end < start ||
       end > entries.length
     ) {
-      return res.status(400).send("Invalid range")
+      return res.status(400).send(`Invalid range. Got ${qs}.`)
     }
 
     console.log(`Sending messages ${start}-${end}`)

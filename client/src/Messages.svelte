@@ -1,37 +1,33 @@
 <script>
   import { beforeUpdate, afterUpdate, onMount, onDestroy } from "svelte";
-  import { chatTopic, user } from "./stores";
-  import { db } from './db'
+  import { user, getMessageStore } from "./stores";
   import ScrollToBottom from "./ScrollToBottom.svelte";
   import MessageInput from "./MessageInput.svelte";
   import MessageList from "./MessageList.svelte";
   import Spinner from "./ui/Spinner.svelte";
+  import { derived, get, readable } from "svelte/store";
 
   const ADD_ON_SCROLL = 50; // messages to add when scrolling to the top
   let showMessages = 100; // initial messages to load
 
-  let store = {};
-  let chats = [];
   let autoscroll;
   let showScrollToBottom;
   let main;
   let isLoading = false;
-  let timeout;
 
-  $: {
-    isLoading = true;
-    if (timeout) clearTimeout(timeout);
-    // debounce update svelte store to avoid overloading ui
-    timeout = setTimeout(() => {
-      // convert key/value object to sorted array of messages (with a max length)
-      const arr = Object.values(store);
-      const sorted = arr.sort((a, b) => a.time - b.time);
-      const begin = Math.max(0, sorted.length - showMessages);
-      const end = arr.length;
-      chats = arr.slice(begin, end);
-      isLoading = false;
-    }, 200);
-  }
+  const messages = getMessageStore();
+
+  onMount(async () => {
+    await messages.init();
+    messages.poll();
+  });
+
+  const displayMessages = derived(messages, $messages => {
+    const arr = Object.values($messages);
+    return arr.sort((a, b) => b.time - a.time)
+              .slice(0, showMessages) 
+              .reverse();
+  });
 
   function scrollToBottom() {
     main.scrollTo({ left: 0, top: main.scrollHeight });
@@ -41,7 +37,7 @@
     showScrollToBottom =
       main.scrollHeight - main.offsetHeight > main.scrollTop + 300;
     if (!isLoading && main.scrollTop <= main.scrollHeight / 10) {
-      const totalMessages = Object.keys(store).length - 1;
+      const totalMessages = $messages.length - 1;
       if (showMessages >= totalMessages) return;
       isLoading = true;
       setTimeout(() => {
@@ -54,32 +50,14 @@
 
   function handleNewMessage(msg) {
     const now = new Date().getTime();
-    const message = { msg, user: $user, time: now };
-    db.get($chatTopic).set(message);
+    const message = { message: msg, user: $user, time: `${now}` };
+    messages.send(message);
   }
 
   function handleDelete(msgId) {
-    db
-      .get($chatTopic)
-      .get(msgId)
+    db.get(msgId)
       .put(null);
   }
-
-  onMount(async () => {
-    db
-      .get($chatTopic)
-      .map()
-      .on((val, msgId) => {
-        if (val) {
-          store[msgId] = { msgId, ...val };
-        } else {
-          // null messages are deleted
-          delete store[msgId];
-          // reassign store to trigger svelte's reactivity
-          store = store;
-        }
-      });
-  });
 
   beforeUpdate(() => {
     autoscroll =
@@ -92,7 +70,7 @@
 
   onDestroy(() => {
     // remove db listeners
-    db.get($chatTopic).off();
+    db.off();
   });
 </script>
 
@@ -101,7 +79,7 @@
     <Spinner />
   {/if}
   <MessageList
-    {chats}
+    messages={displayMessages}
     on:delete={e => {
       handleDelete(e.detail);
     }}
