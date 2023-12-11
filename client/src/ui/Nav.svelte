@@ -1,12 +1,11 @@
 <script lang="ts">
   import { createEventDispatcher } from "svelte"
-  export let showBack = false
-  export let backText = null
+  export let backText = ""
   const dispatch = createEventDispatcher()
 </script>
 
 <nav>
-  {#if showBack}
+  {#if backText.length > 0}
     <button on:click={() => dispatch("back")}>
       <svg
         height="40"
@@ -20,9 +19,7 @@
           1.4L10.42 12l3.3 3.3z"
         />
       </svg>
-      {#if backText}
-        <span>{backText}</span>
-      {/if}
+      <span>{backText}</span>
     </button>
   {/if}
   <h1>

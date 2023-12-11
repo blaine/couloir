@@ -16,7 +16,6 @@
 {:else}
   <Page>
     <Nav
-      showBack
       backText="Sign Out ({$user})"
       on:back={() => {
         $nav = "settings"
