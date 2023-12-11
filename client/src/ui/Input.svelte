@@ -1,6 +1,5 @@
 <script lang="ts">
   import { fade } from "svelte/transition"
-  import { createEventDispatcher } from "svelte"
 
   export let ariaLabelledBy = null
   export let ariaLabel = null

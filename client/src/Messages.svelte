@@ -1,11 +1,11 @@
 <script lang="ts">
-  import { beforeUpdate, afterUpdate, onMount, onDestroy } from "svelte"
-  import { user, getMessageStore } from "./stores"
-  import ScrollToBottom from "./ScrollToBottom.svelte"
+  import { afterUpdate, beforeUpdate, onDestroy, onMount } from "svelte"
+  import { derived } from "svelte/store"
   import MessageInput from "./MessageInput.svelte"
   import MessageList from "./MessageList.svelte"
+  import ScrollToBottom from "./ScrollToBottom.svelte"
+  import { getMessageStore, user } from "./stores"
   import Spinner from "./ui/Spinner.svelte"
-  import { derived, get, readable } from "svelte/store"
 
   const ADD_ON_SCROLL = 50 // messages to add when scrolling to the top
   let showMessages = 100 // initial messages to load

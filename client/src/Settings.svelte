@@ -1,7 +1,5 @@
 <script lang="ts">
-  import { fade, fly } from "svelte/transition"
   import { nav, user } from "./stores"
-  import { flip } from "svelte/animate"
   import Input from "./ui/Input.svelte"
 </script>
 
