@@ -85,7 +85,7 @@ describe("messages server", () => {
             Promise.all([postMessage("hello"), postMessage("world")])
           )
 
-          for (const query of ["x-1", "-1-2", "2-1", "0-x", "1-0", "0-3"]) {
+          for (const query of ["x-1", "2-1", "0-x", "1-0", "0-3"]) {
             it(`responds 400 Bad Request for ?q=${query}`, async () => {
               const response = await request
                 .get(`/messages?q=${query}`)

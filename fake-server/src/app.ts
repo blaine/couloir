@@ -85,7 +85,6 @@ app.get("/messages", async (req, res) => {
     let end = parseInt(e)
     if (
       isNaN(start) ||
-      start < 0 ||
       start > entries.length ||
       isNaN(end) ||
       end < start ||
