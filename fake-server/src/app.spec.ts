@@ -69,13 +69,31 @@ describe("messages server", () => {
 
     describe("GET /messages", () => {
       describe("guarding against invalid queries", () => {
-        context("with no query", () => {
+        context("no query", () => {
           it("responds 400 Bad Request", async () =>
             await request.get("/messages").expect(400))
         })
-        context("with an invalid query", () => {
-          it("responds 400 Bad Request", async () =>
-            await request.get("/messages?q=").expect(400))
+        context("an empty query", () => {
+          it("responds 400 Bad Request", async () => {
+            const response = await request.get("/messages?q=").expect(400)
+            assertThat(response.text, equalTo("Invalid query"))
+          })
+        })
+
+        context("a badly-formed query", () => {
+          beforeEach(() =>
+            Promise.all([postMessage("hello"), postMessage("world")])
+          )
+
+          for (const query of ["x-1", "-1-2", "2-1", "0-x", "1-0", "0-3"]) {
+            it(`responds 400 Bad Request for ?q=${query}`, async () => {
+              const response = await request
+                .get(`/messages?q=${query}`)
+                .set("if-match", String(2))
+                .expect(400)
+              assertThat(response.text, equalTo("Invalid range"))
+            })
+          }
         })
       })
       describe("checking the ETag", () => {
