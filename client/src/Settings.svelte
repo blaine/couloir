@@ -13,7 +13,7 @@
     <label id="name-label" for="">ENTER YOUR NICKNAME</label>
     <Input
       bind:value={$user}
-      maxLength="50"
+      maxlength={50}
       placeholder="Steve Jobs"
       ariaLabelledBy="name-label"
     />
