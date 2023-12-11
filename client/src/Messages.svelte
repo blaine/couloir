@@ -10,9 +10,9 @@
   const ADD_ON_SCROLL = 50 // messages to add when scrolling to the top
   let showMessages = 100 // initial messages to load
 
-  let autoscroll
-  let showScrollToBottom
-  let main
+  let autoscroll = true
+  let showScrollToBottom = true
+  let main: HTMLElement
   let isLoading = false
 
   const messages = getMessageStore()
