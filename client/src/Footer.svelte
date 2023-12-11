@@ -1,6 +1,6 @@
 <footer>
   See
-  <a href="https://github.com/mattwynne/svelte-automerge-chat">Github</a>
+  <a href="https://github.com/blaine/couloir">Github</a>
   <br />
 </footer>
 
