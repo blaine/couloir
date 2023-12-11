@@ -56,7 +56,7 @@
   }
 
   function handleDelete(msgId) {
-    db.get(msgId).put(null)
+    alert("Delete not yet supported by the server!")
   }
 
   beforeUpdate(() => {
@@ -70,7 +70,8 @@
 
   onDestroy(() => {
     // remove db listeners
-    db.off()
+    // db.off()
+    // TODO: stop messageStore from polling the server?
   })
 </script>
 
