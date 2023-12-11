@@ -31,8 +31,14 @@ async function digestMessage(message: string) {
   return hashHex
 }
 
+type Message = {
+  message: string
+  user: string
+  time: string
+}
+
 export function getMessageStore() {
-  const messages = writable([])
+  const messages = writable<Message[]>([])
   const { subscribe, update, set } = messages
 
   const getMessages = async () => {
