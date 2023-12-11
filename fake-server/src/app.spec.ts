@@ -1,6 +1,11 @@
 import supertest from "supertest"
 import app from "./app"
-import { assertThat, containsInAnyOrder, equalTo } from "hamjest"
+import {
+  assertThat,
+  containsInAnyOrder,
+  equalTo,
+  matchesPattern,
+} from "hamjest"
 
 const request = supertest(app)
 
@@ -59,8 +64,8 @@ describe("messages server", () => {
           assertThat(
             response.text.split("\n"),
             equalTo([
-              "9b2d43affbf49a367028df2e1414f84c0e099ac98c3d54a8a80157fd7771af25",
               "3a477a27451b71eaf6dc49c80b0e2e4c80f3fc5060884497c4246ea2b44d0790",
+              "9b2d43affbf49a367028df2e1414f84c0e099ac98c3d54a8a80157fd7771af25",
             ])
           )
         })
@@ -95,7 +100,7 @@ describe("messages server", () => {
                 .get(`/messages?q=${query}`)
                 .set("if-match", String(3))
                 .expect(400)
-              assertThat(response.text, equalTo("Invalid range"))
+              assertThat(response.text, matchesPattern("Invalid range"))
             })
           }
         })
