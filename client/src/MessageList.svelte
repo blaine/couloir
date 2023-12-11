@@ -1,32 +1,32 @@
-<script>
-  import { createEventDispatcher } from "svelte";
-  import { fade, fly } from "svelte/transition";
-  import { user } from "./stores";
-  import { quintOut } from "svelte/easing";
-  import { crossfade } from "svelte/transition";
-  import { toHSL } from "./toHSL.js";
+<script lang="ts">
+  import { createEventDispatcher } from "svelte"
+  import { fade, fly } from "svelte/transition"
+  import { user } from "./stores"
+  import { quintOut } from "svelte/easing"
+  import { crossfade } from "svelte/transition"
+  import { toHSL } from "./toHSL.js"
 
-  const dispatch = createEventDispatcher();
+  const dispatch = createEventDispatcher()
 
-  export let messages;
+  export let messages
 
   const [send, receive] = crossfade({
-    duration: d => Math.sqrt(d * 200),
+    duration: (d) => Math.sqrt(d * 200),
 
     fallback(node, params) {
-      const style = getComputedStyle(node);
-      const transform = style.transform === "none" ? "" : style.transform;
+      const style = getComputedStyle(node)
+      const transform = style.transform === "none" ? "" : style.transform
 
       return {
         duration: 600,
         easing: quintOut,
-        css: t => `
+        css: (t) => `
           transform: ${transform} scale(${t});
           opacity: ${t}
-				`
-      };
-    }
-  });
+				`,
+      }
+    },
+  })
 </script>
 
 {#each $messages as chat}
@@ -37,8 +37,8 @@
   >
     <div class="meta">
       <span class="time">
-        {new Date(parseFloat(chat.time)).toLocaleString('en-US', {
-          hour12: false
+        {new Date(parseFloat(chat.time)).toLocaleString("en-US", {
+          hour12: false,
         })}
       </span>
       <span class="user">{chat.user}</span>
@@ -52,8 +52,8 @@
         <button
           class="delete"
           on:click|preventDefault={() => {
-            const yes = confirm('Are you sure?');
-            if (yes) dispatch('delete', chat.msgId);
+            const yes = confirm("Are you sure?")
+            if (yes) dispatch("delete", chat.msgId)
           }}
         >
           delete

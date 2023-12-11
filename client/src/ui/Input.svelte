@@ -1,29 +1,29 @@
-<script>
-  import { fade } from "svelte/transition";
-  import { createEventDispatcher } from "svelte";
+<script lang="ts">
+  import { fade } from "svelte/transition"
+  import { createEventDispatcher } from "svelte"
 
-  export let ariaLabelledBy = null;
-  export let ariaLabel = null;
-  export let placeholder = null;
-  export let value = "";
-  export let name = null;
-  export let maxLength = 160;
-  export let maxRows = 1;
-  export let disabled = false;
-  export let multiline = false;
+  export let ariaLabelledBy = null
+  export let ariaLabel = null
+  export let placeholder = null
+  export let value = ""
+  export let name = null
+  export let maxLength = 160
+  export let maxRows = 1
+  export let disabled = false
+  export let multiline = false
 
   // TODO: kinda hacky, on desktop it's more that 40, but calculating chars per line is hard
   // FIX: something along the lines of this: https://github.com/mui-org/material-ui/blob/master/packages/material-ui/src/TextareaAutosize/TextareaAutosize.js
-  const CHARS_PER_LINE = 40;
+  const CHARS_PER_LINE = 40
 
   function calcRows(v) {
-    let textRows = Math.floor(v.length / CHARS_PER_LINE) + 1;
-    const numberOfReturns = (v.match(/\n/g) || []).length;
-    textRows += numberOfReturns;
-    return Math.min(maxRows, textRows);
+    let textRows = Math.floor(v.length / CHARS_PER_LINE) + 1
+    const numberOfReturns = (v.match(/\n/g) || []).length
+    textRows += numberOfReturns
+    return Math.min(maxRows, textRows)
   }
 
-  $: rows = calcRows(value);
+  $: rows = calcRows(value)
 
   function handleKeyPress(e) {
     if (e.which === 13 && !e.shiftKey) {
@@ -31,10 +31,10 @@
       // but not on 'soft return'
       e.target.form.dispatchEvent(
         new Event("submit", {
-          cancelable: true
-        })
-      );
-      e.preventDefault();
+          cancelable: true,
+        }),
+      )
+      e.preventDefault()
     }
   }
 </script>
