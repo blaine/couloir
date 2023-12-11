@@ -80,16 +80,20 @@ describe("messages server", () => {
           })
         })
 
-        context("a badly-formed query", () => {
+        context("a badly-formed query range", () => {
           beforeEach(() =>
-            Promise.all([postMessage("hello"), postMessage("world")])
+            Promise.all([
+              postMessage("hello"),
+              postMessage("world"),
+              postMessage("yo"),
+            ])
           )
 
-          for (const query of ["x-1", "2-1", "0-x", "1-0", "0-3"]) {
+          for (const query of ["x-1", "2-1", "0-x", "1-0", "poop"]) {
             it(`responds 400 Bad Request for ?q=${query}`, async () => {
               const response = await request
                 .get(`/messages?q=${query}`)
-                .set("if-match", String(2))
+                .set("if-match", String(3))
                 .expect(400)
               assertThat(response.text, equalTo("Invalid range"))
             })
