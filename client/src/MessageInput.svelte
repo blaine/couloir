@@ -1,21 +1,21 @@
 <script>
-  import { createEventDispatcher } from "svelte";
-  import { user } from "./stores";
-  import Input from "./ui/Input.svelte";
+  import { createEventDispatcher } from "svelte"
+  import { user } from "./stores"
+  import Input from "./ui/Input.svelte"
 
-  const dispatch = createEventDispatcher();
-  let msgInput;
+  const dispatch = createEventDispatcher()
+  let msgInput
 </script>
 
 <div>
   <form
     method="get"
     autocomplete="off"
-    on:submit|preventDefault={e => {
-      if (!msgInput || !msgInput.trim()) return;
-      dispatch('message', msgInput);
-      msgInput = '';
-      e.target.msg.focus();
+    on:submit|preventDefault={(e) => {
+      if (!msgInput || !msgInput.trim()) return
+      dispatch("message", msgInput)
+      msgInput = ""
+      e.target.msg.focus()
     }}
   >
     <Input

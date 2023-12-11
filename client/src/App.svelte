@@ -1,25 +1,25 @@
 <script lang="ts">
-  import { nav } from "./stores";
-  import Messages from "./Messages.svelte";
-  import Settings from "./Settings.svelte";
-  import Nav from "./ui/Nav.svelte";
-  import Page from "./ui/Page.svelte";
-  import Footer from "./Footer.svelte";
+  import { nav } from "./stores"
+  import Messages from "./Messages.svelte"
+  import Settings from "./Settings.svelte"
+  import Nav from "./ui/Nav.svelte"
+  import Page from "./ui/Page.svelte"
+  import Footer from "./Footer.svelte"
 </script>
 
-{#if $nav === 'settings'}
+{#if $nav === "settings"}
   <Page>
     <Nav>Sign In</Nav>
     <Settings />
     <Footer />
   </Page>
-{:else if $nav === 'messages'}
+{:else if $nav === "messages"}
   <Page>
     <Nav
       showBack
       backText="Sign In"
       on:back={() => {
-        $nav = 'settings';
+        $nav = "settings"
       }}
     >
       Messages

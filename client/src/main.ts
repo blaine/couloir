@@ -1,7 +1,7 @@
-import App from "./App.svelte";
+import App from "./App.svelte"
 
-document.body.innerHTML = "";
+document.body.innerHTML = ""
 
 export default new App({
   target: document.body,
-});
+})
