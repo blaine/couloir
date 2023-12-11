@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import { createEventDispatcher } from "svelte"
   import { fade, fly } from "svelte/transition"
   import { user } from "./stores"

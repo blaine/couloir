@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import { createEventDispatcher } from "svelte"
   import { user } from "./stores"
   import Input from "./ui/Input.svelte"

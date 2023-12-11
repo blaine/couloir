@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import { beforeUpdate, afterUpdate, onMount, onDestroy } from "svelte"
   import { user, getMessageStore } from "./stores"
   import ScrollToBottom from "./ScrollToBottom.svelte"
