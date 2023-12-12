@@ -3,7 +3,7 @@
   import { quintOut } from "svelte/easing"
   import { crossfade, fade } from "svelte/transition"
   import { user } from "./stores"
-  import { toHSL } from "./toHSL.js"
+  import { toHSL } from "./toHSL"
 
   const dispatch = createEventDispatcher()
 
