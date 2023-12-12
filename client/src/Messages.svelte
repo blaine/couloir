@@ -1,18 +1,18 @@
 <script lang="ts">
-  import { beforeUpdate, afterUpdate, onMount, onDestroy } from "svelte"
-  import { user, getMessageStore } from "./stores"
-  import ScrollToBottom from "./ScrollToBottom.svelte"
+  import { afterUpdate, beforeUpdate, onDestroy, onMount } from "svelte"
+  import { derived } from "svelte/store"
   import MessageInput from "./MessageInput.svelte"
   import MessageList from "./MessageList.svelte"
+  import ScrollToBottom from "./ScrollToBottom.svelte"
+  import { getMessageStore, user } from "./stores"
   import Spinner from "./ui/Spinner.svelte"
-  import { derived, get, readable } from "svelte/store"
 
   const ADD_ON_SCROLL = 50 // messages to add when scrolling to the top
   let showMessages = 100 // initial messages to load
 
-  let autoscroll
-  let showScrollToBottom
-  let main
+  let autoscroll = true
+  let showScrollToBottom = true
+  let main: HTMLElement
   let isLoading = false
 
   const messages = getMessageStore()
@@ -25,7 +25,7 @@
   const displayMessages = derived(messages, ($messages) => {
     const arr = Object.values($messages)
     return arr
-      .sort((a, b) => b.time - a.time)
+      .sort((a, b) => Number(b.time) - Number(a.time)) // TODO: just use numbers!?
       .slice(0, showMessages)
       .reverse()
   })
@@ -34,7 +34,7 @@
     main.scrollTo({ left: 0, top: main.scrollHeight })
   }
 
-  function handleScroll(e) {
+  function handleScroll() {
     showScrollToBottom =
       main.scrollHeight - main.offsetHeight > main.scrollTop + 300
     if (!isLoading && main.scrollTop <= main.scrollHeight / 10) {
@@ -49,13 +49,13 @@
     }
   }
 
-  function handleNewMessage(msg) {
+  function handleNewMessage(msg: string) {
     const now = new Date().getTime()
     const message = { message: msg, user: $user, time: `${now}` }
     messages.send(message)
   }
 
-  function handleDelete(msgId) {
+  function handleDelete(msgId: string) {
     alert("Delete not yet supported by the server!")
   }
 

@@ -1,0 +1,12 @@
+{
+  "name": "couloir",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "pnpm test --recursive"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

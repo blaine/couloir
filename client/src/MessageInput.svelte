@@ -1,10 +1,11 @@
 <script lang="ts">
-  import { createEventDispatcher } from "svelte"
+  import { SvelteComponent, createEventDispatcher } from "svelte"
   import { user } from "./stores"
   import Input from "./ui/Input.svelte"
 
   const dispatch = createEventDispatcher()
-  let msgInput
+  let messageBody = ""
+  let messageElement: SvelteComponent
 </script>
 
 <div>
@@ -12,18 +13,18 @@
     method="get"
     autocomplete="off"
     on:submit|preventDefault={(e) => {
-      if (!msgInput || !msgInput.trim()) return
-      dispatch("message", msgInput)
-      msgInput = ""
-      e.target.msg.focus()
+      if (!messageBody.trim()) return
+      dispatch("message", messageBody)
+      messageBody = ""
+      messageElement.focus()
     }}
   >
     <Input
       multiline
       disabled={!$user}
       maxRows={3}
-      bind:value={msgInput}
-      name="msg"
+      bind:value={messageBody}
+      bind:this={messageElement}
       placeholder="Message"
       ariaLabel="Message"
     />

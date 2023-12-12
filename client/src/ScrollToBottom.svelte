@@ -1,6 +1,6 @@
 <script lang="ts">
   import { fly } from "svelte/transition"
-  export let onScroll
+  export let onScroll: () => void
 </script>
 
 <div out:fly={{ x: 20, duration: 200 }} in:fly={{ x: 20, duration: 200 }}>

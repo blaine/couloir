@@ -1,13 +1,12 @@
 <script lang="ts">
   import { fade } from "svelte/transition"
-  import { createEventDispatcher } from "svelte"
 
-  export let ariaLabelledBy = null
-  export let ariaLabel = null
-  export let placeholder = null
+  export let ariaLabelledBy = ""
+  export let ariaLabel = ""
+  export let placeholder = ""
   export let value = ""
-  export let name = null
-  export let maxLength = 160
+  export let name = ""
+  export let maxlength = 160
   export let maxRows = 1
   export let disabled = false
   export let multiline = false
@@ -16,7 +15,7 @@
   // FIX: something along the lines of this: https://github.com/mui-org/material-ui/blob/master/packages/material-ui/src/TextareaAutosize/TextareaAutosize.js
   const CHARS_PER_LINE = 40
 
-  function calcRows(v) {
+  function calcRows(v: string) {
     let textRows = Math.floor(v.length / CHARS_PER_LINE) + 1
     const numberOfReturns = (v.match(/\n/g) || []).length
     textRows += numberOfReturns
@@ -25,16 +24,19 @@
 
   $: rows = calcRows(value)
 
-  function handleKeyPress(e) {
-    if (e.which === 13 && !e.shiftKey) {
-      // simulate actual submit event when user pressed return
-      // but not on 'soft return'
-      e.target.form.dispatchEvent(
-        new Event("submit", {
-          cancelable: true,
-        }),
-      )
-      e.preventDefault()
+  function handleKeyPress(e: KeyboardEvent) {
+    // simulate actual submit event when user pressed return
+    // but not on 'soft return'
+    if (e.code === "Enter" && !e.shiftKey) {
+      if (e.target) {
+        const { form } = e.target as HTMLFormElement
+        form.dispatchEvent(
+          new Event("submit", {
+            cancelable: true,
+          }),
+        )
+        e.preventDefault()
+      }
     }
   }
 </script>
@@ -45,8 +47,7 @@
       {disabled}
       {rows}
       class="input"
-      type="text"
-      {maxLength}
+      {maxlength}
       {name}
       bind:value
       on:keypress={handleKeyPress}
@@ -57,10 +58,9 @@
   {:else}
     <input
       {disabled}
-      {rows}
       class="input"
       type="text"
-      {maxLength}
+      {maxlength}
       {name}
       bind:value
       aria-labelledby={ariaLabelledBy}

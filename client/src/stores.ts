@@ -1,6 +1,12 @@
-import { writable, get } from "svelte/store"
+import { get, writable } from "svelte/store"
 
-function localStorageStore({ storageKey, initialValue = "" }) {
+function localStorageStore({
+  storageKey,
+  initialValue = "",
+}: {
+  storageKey: string
+  initialValue?: string
+}) {
   const init = localStorage.getItem(storageKey) || initialValue
 
   const { subscribe, update, set } = writable(init)
@@ -31,8 +37,14 @@ async function digestMessage(message: string) {
   return hashHex
 }
 
+type Message = {
+  message: string
+  user: string
+  time: string
+}
+
 export function getMessageStore() {
-  const messages = writable([])
+  const messages = writable<Message[]>([])
   const { subscribe, update, set } = messages
 
   const getMessages = async () => {
@@ -86,12 +98,10 @@ export function getMessageStore() {
 
   return {
     subscribe,
-    send: async (message) => {
+    send: async (message: Message) => {
       await fetch("/messages", {
         method: "POST",
-        body: Object.entries(message)
-          .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
-          .join("&"),
+        body: new URLSearchParams(message),
         headers: {
           "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
         },

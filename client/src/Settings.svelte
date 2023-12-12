@@ -1,7 +1,5 @@
 <script lang="ts">
-  import { fade, fly } from "svelte/transition"
   import { nav, user } from "./stores"
-  import { flip } from "svelte/animate"
   import Input from "./ui/Input.svelte"
 </script>
 
@@ -15,7 +13,7 @@
     <label id="name-label" for="">ENTER YOUR NICKNAME</label>
     <Input
       bind:value={$user}
-      maxLength="50"
+      maxlength={50}
       placeholder="Steve Jobs"
       ariaLabelledBy="name-label"
     />

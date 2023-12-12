@@ -1,0 +1,27 @@
+name: Run checks
+on: [push]
+jobs:
+  client-check-svelte:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      - run: pnpm install-test
+        working-directory: ./client
+      - run: pnpm check
+        working-directory: ./client
+      - run: pnpm build
+        working-directory: ./client
+  fake-server-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      - run: pnpm install
+        working-directory: ./fake-server
+      - run: pnpm test
+        working-directory: ./fake-server

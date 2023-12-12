@@ -1,10 +1,10 @@
 <script lang="ts">
-  import { nav, user } from "./stores"
+  import Footer from "./Footer.svelte"
   import Messages from "./Messages.svelte"
   import Settings from "./Settings.svelte"
+  import { nav, user } from "./stores"
   import Nav from "./ui/Nav.svelte"
   import Page from "./ui/Page.svelte"
-  import Footer from "./Footer.svelte"
 </script>
 
 {#if $nav === "settings"}
@@ -16,7 +16,6 @@
 {:else}
   <Page>
     <Nav
-      showBack
       backText="Sign Out ({$user})"
       on:back={() => {
         $nav = "settings"
