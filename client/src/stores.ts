@@ -1,6 +1,12 @@
 import { get, writable } from "svelte/store"
 
-function localStorageStore({ storageKey, initialValue = "" }) {
+function localStorageStore({
+  storageKey,
+  initialValue = "",
+}: {
+  storageKey: string
+  initialValue?: string
+}) {
   const init = localStorage.getItem(storageKey) || initialValue
 
   const { subscribe, update, set } = writable(init)

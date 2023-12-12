@@ -34,7 +34,7 @@
     main.scrollTo({ left: 0, top: main.scrollHeight })
   }
 
-  function handleScroll(e) {
+  function handleScroll() {
     showScrollToBottom =
       main.scrollHeight - main.offsetHeight > main.scrollTop + 300
     if (!isLoading && main.scrollTop <= main.scrollHeight / 10) {
@@ -49,13 +49,13 @@
     }
   }
 
-  function handleNewMessage(msg) {
+  function handleNewMessage(msg: string) {
     const now = new Date().getTime()
     const message = { message: msg, user: $user, time: `${now}` }
     messages.send(message)
   }
 
-  function handleDelete(msgId) {
+  function handleDelete(msgId: string) {
     alert("Delete not yet supported by the server!")
   }
 
