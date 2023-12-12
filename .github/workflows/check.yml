@@ -6,6 +6,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v2
+        with:
+          version: 8
       - run: pnpm install-test
         working-directory: ./client
       - run: pnpm check
@@ -17,6 +19,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v2
+        with:
+          version: 8
       - run: pnpm install
         working-directory: ./fake-server
       - run: pnpm test
