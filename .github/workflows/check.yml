@@ -4,25 +4,20 @@ jobs:
   client-check-svelte:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out repository code
-        uses: actions/checkout@v4
-      - name: Install dependencies
-        run: pnpm install-test
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v2
+      - run: pnpm install-test
         working-directory: ./client
-      - name: Run checks
-        run: pnpm check
+      - run: pnpm check
         working-directory: ./client
-      - name: Build
-        run: pnpm build
+      - run: pnpm build
         working-directory: ./client
   fake-server-tests:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out repository code
-        uses: actions/checkout@v4
-      - name: Install dependencies
-        run: pnpm install-test
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v2
+      - run: pnpm install
         working-directory: ./fake-server
-      - name: Run tests
-        run: pnpm test
+      - run: pnpm test
         working-directory: ./fake-server
