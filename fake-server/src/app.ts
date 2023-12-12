@@ -2,6 +2,9 @@ import express from "express"
 import path from "path"
 import { promises as fs } from "fs"
 import crypto from "crypto"
+import createDebug from "debug"
+
+const debug = createDebug("couloir:fake-server")
 
 const app = express()
 
@@ -78,7 +81,6 @@ app.get("/messages", async (req, res) => {
   // Otherwise, we can send the messages
   let qs = q.split(",")
   for (let i = 0; i < qs.length; i++) {
-    console.log(`Processing range ${i}`)
     let range = qs[i]
     const [s, e] = range.split("-")
     let start = parseInt(s)
@@ -93,17 +95,17 @@ app.get("/messages", async (req, res) => {
       return res.status(400).send(`Invalid range. Got ${qs}.`)
     }
 
-    console.log(`Sending messages ${start}-${end}`)
+    debug(`Sending messages ${start}-${end}`)
     for (let i = start; i <= end; i++) {
       let hash = entries[i]
       let data = await fs.readFile(`data/${hash}`)
-      console.log(hash, data.toString())
+      debug(hash, data.toString())
       res.write(data)
       res.write("\n")
     }
   }
 
-  console.log("Done sending messages")
+  debug("Done sending messages")
   res.end()
 })
 
