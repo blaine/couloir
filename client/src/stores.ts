@@ -98,7 +98,7 @@ export function getMessageStore() {
 
   return {
     subscribe,
-    send: async (message) => {
+    send: async (message: Message) => {
       await fetch("/messages", {
         method: "POST",
         body: Object.entries(message)
