@@ -101,9 +101,7 @@ export function getMessageStore() {
     send: async (message: Message) => {
       await fetch("/messages", {
         method: "POST",
-        body: Object.entries(message)
-          .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
-          .join("&"),
+        body: new URLSearchParams(message),
         headers: {
           "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
         },
