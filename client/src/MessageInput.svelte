@@ -1,11 +1,11 @@
 <script lang="ts">
   import { SvelteComponent, createEventDispatcher } from "svelte"
-  import { user } from "./stores"
   import Input from "./ui/Input.svelte"
 
   const dispatch = createEventDispatcher()
   let messageBody = ""
   let messageElement: SvelteComponent
+  export let disabled: boolean
 </script>
 
 <div>
@@ -21,7 +21,7 @@
   >
     <Input
       multiline
-      disabled={!$user}
+      {disabled}
       maxRows={3}
       bind:value={messageBody}
       bind:this={messageElement}

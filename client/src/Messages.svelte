@@ -22,8 +22,13 @@
     messages.poll()
   })
 
+  const isOffline = derived(
+    messages,
+    ($messages) => $messages.connection === "offline",
+  )
+
   const displayMessages = derived(messages, ($messages) => {
-    return $messages
+    return $messages.list
       .sort((a, b) => Number(b.time) - Number(a.time)) // TODO: just use numbers!?
       .slice(0, showMessages)
       .reverse()
@@ -37,7 +42,7 @@
     showScrollToBottom =
       main.scrollHeight - main.offsetHeight > main.scrollTop + 300
     if (!isLoading && main.scrollTop <= main.scrollHeight / 10) {
-      const totalMessages = $messages.length - 1
+      const totalMessages = $messages.list.length - 1
       if (showMessages >= totalMessages) return
       isLoading = true
       setTimeout(() => {
@@ -87,6 +92,7 @@
 </main>
 
 <MessageInput
+  disabled={!$user || $isOffline}
   on:message={(e) => {
     handleNewMessage(e.detail)
     scrollToBottom()
