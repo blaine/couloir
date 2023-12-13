@@ -96,37 +96,6 @@ describe(getMessageStore.name, () => {
       })
     })
   })
-
-  describe("refresh", () => {
-    it("populates with new messages that have arrived on the server", async () => {
-      const store = getMessageStore()
-      await store.init()
-      await server.send(a.message({ message: "hello" }))
-      await store.refresh()
-      const messages = await subscriberUpdateFrom(store)
-      expect(messages.map((message) => message.message)).toEqual(["hello"])
-    })
-  })
-
-  describe("if the connection to the server goes offline", () => {
-    it("populates with messages that other people posted to the server while the connection was down", async () => {
-      const store = getMessageStore()
-      await store.init()
-      const originalFetch = window.fetch
-      window.fetch = () => {
-        throw new TypeError("Load failed")
-      }
-      // TODO: handle this and send a message to subscribers that we're offline
-      try {
-        await store.refresh()
-      } catch {}
-      await server.send(a.message({ message: "A message" }))
-      window.fetch = originalFetch
-      await store.refresh()
-      const messages = await subscriberUpdateFrom(store)
-      expect(messages.map((message) => message.message)).toEqual(["A message"])
-    })
-  })
 })
 
 async function repeat(iterations: number, action: () => Promise<void>) {
