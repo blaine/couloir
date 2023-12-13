@@ -7,9 +7,11 @@ import {
   matchesPattern,
 } from "hamjest"
 
-const request = supertest(app("tmp/data"))
-
 describe("messages server", () => {
+  let request: supertest.SuperTest<supertest.Test>
+  before(async () => {
+    request = supertest(await app("tmp/data"))
+  })
   // contract tests describe the behaviour of the server
   // as a "black box". They only use public-facing behaviour,
   // and could be run against other implementations of the server.

@@ -6,12 +6,10 @@ import createDebug from "debug"
 
 const debug = createDebug("couloir:fake-server")
 
-export default (dataPath: string) => {
+export default async (dataPath: string) => {
   const app = express()
 
-  fs.stat(dataPath).catch(() => {
-    fs.mkdir(dataPath, { recursive: true })
-  })
+  await fs.stat(dataPath).catch(() => fs.mkdir(dataPath, { recursive: true }))
 
   app.use(express.static(path.join(__dirname, "..", "..", "client", "dist")))
   app.use(express.urlencoded({ extended: false }))

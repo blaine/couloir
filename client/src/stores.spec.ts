@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest"
+import { describe, it, expect, beforeAll } from "vitest"
 import { getMessageStore, type Message } from "./stores"
 import nodeFetch from "node-fetch"
 import { type RequestInit as NodeFetchRequestInit } from "node-fetch"
@@ -8,7 +8,6 @@ import type { Readable } from "svelte/store"
 
 const port = 3000
 const dataPath = "tmp/data"
-app(dataPath).listen(port)
 
 const url = (path: string) => `http://localhost:${port}${path}`
 
@@ -36,6 +35,9 @@ const server = {
 }
 
 describe(getMessageStore.name, () => {
+  beforeAll(async () => {
+    await app(dataPath).then((server) => server.listen(port))
+  })
   beforeEach(async () => await server.reset())
 
   it("sends a message", async () => {
