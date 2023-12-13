@@ -47,6 +47,17 @@ describe(getMessageStore.name, () => {
   })
 
   describe("init", () => {
+    describe("when there are no messages on the server", () => {
+      it("populates with an empty list", async () => {
+        const store = getMessageStore()
+        await store.init()
+        const messages = await new Promise<Message[]>((resolve) => {
+          store.subscribe(resolve)
+        })
+        expect(messages).toEqual([])
+      })
+    })
+
     describe("when messages exist on the server", () => {
       beforeEach(async () => {
         await server.send({

@@ -49,7 +49,8 @@ export function getMessageStore() {
 
   const getMessages = async () => {
     const messageListReq = await fetch("/messages-list")
-    const messageList = (await messageListReq.text()).split("\n")
+    const messageListRaw = await messageListReq.text()
+    const messageList = messageListRaw === "" ? [] : messageListRaw.split("\n")
 
     console.log("message-list:", messageList.length)
 
