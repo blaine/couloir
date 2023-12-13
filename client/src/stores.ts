@@ -37,7 +37,7 @@ async function digestMessage(message: string) {
   return hashHex
 }
 
-type Message = {
+export type Message = {
   message: string
   user: string
   time: string
@@ -49,7 +49,8 @@ export function getMessageStore() {
 
   const getMessages = async () => {
     const messageListReq = await fetch("/messages-list")
-    const messageList = (await messageListReq.text()).split("\n")
+    const messageListRaw = await messageListReq.text()
+    const messageList = messageListRaw === "" ? [] : messageListRaw.split("\n")
 
     const localShas = await Promise.all(
       get(messages).map(async (m) => {
@@ -114,8 +115,7 @@ export function getMessageStore() {
       return await getMessages()
     },
 
-    poll: () => {
-      setInterval(getMessages, 1000)
-    },
+    poll: () => setInterval(getMessages, 1000),
+    refresh: getMessages,
   }
 }

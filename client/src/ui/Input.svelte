@@ -10,6 +10,10 @@
   export let maxRows = 1
   export let disabled = false
   export let multiline = false
+  let element: HTMLTextAreaElement | HTMLInputElement
+  export const focus = () => {
+    element.focus()
+  }
 
   // TODO: kinda hacky, on desktop it's more that 40, but calculating chars per line is hard
   // FIX: something along the lines of this: https://github.com/mui-org/material-ui/blob/master/packages/material-ui/src/TextareaAutosize/TextareaAutosize.js
@@ -44,6 +48,7 @@
 <div class="input-with-button">
   {#if multiline}
     <textarea
+      bind:this={element}
       {disabled}
       {rows}
       class="input"
