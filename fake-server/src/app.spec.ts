@@ -7,7 +7,7 @@ import {
   matchesPattern,
 } from "hamjest"
 
-const request = supertest(app)
+const request = supertest(app("tmp/data"))
 
 describe("messages server", () => {
   // contract tests describe the behaviour of the server
