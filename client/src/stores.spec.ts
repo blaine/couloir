@@ -1,10 +1,9 @@
-import { describe, it, expect } from "vitest"
-import { getMessageStore, type Message } from "./stores"
-import nodeFetch from "node-fetch"
-import { type RequestInit as NodeFetchRequestInit } from "node-fetch"
-import app from "../../fake-server/src/app"
 import { promises as fs } from "fs"
+import nodeFetch, { type RequestInit as NodeFetchRequestInit } from "node-fetch"
 import type { Readable } from "svelte/store"
+import { describe, expect, it } from "vitest"
+import app from "../../fake-server/src/app"
+import { getMessageStore, type Message } from "./stores"
 
 const port = 3000
 const dataPath = "tmp/data"
@@ -51,7 +50,7 @@ describe(getMessageStore.name, () => {
         const store = getMessageStore()
         await store.init()
         const messages = await subscriberUpdateFrom(store)
-        expect(messages).toEqual([])
+        expect(messages.list).toEqual([])
       })
     })
 
@@ -66,7 +65,7 @@ describe(getMessageStore.name, () => {
         await store.init()
         const messages = await subscriberUpdateFrom(store)
         expect(
-          messages
+          messages.list
             .sort((a, b) => Number(a.time) - Number(b.time))
             .map((message) => message.message),
         ).toEqual(["one", "two"])
@@ -81,7 +80,7 @@ describe(getMessageStore.name, () => {
       await server.send(a.message({ message: "hello" }))
       await store.refresh()
       const messages = await subscriberUpdateFrom(store)
-      expect(messages.map((message) => message.message)).toEqual(["hello"])
+      expect(messages.list.map((message) => message.message)).toEqual(["hello"])
     })
 
     describe("when different messages exist on the client and server", () => {
@@ -92,7 +91,23 @@ describe(getMessageStore.name, () => {
         await repeat(10, () => server.send(a.message()))
         await store.refresh()
         const messages = await subscriberUpdateFrom(store)
-        expect(messages.length).toEqual(13)
+        expect(messages.list.length).toEqual(13)
+      })
+    })
+
+    describe("if the connection to the server goes offline", () => {
+      it("sets the conection status", async () => {
+        const store = getMessageStore()
+        await store.init()
+        await withServerOffline(async () => {
+          await store.refresh()
+          const { connection: whileOffline } = await subscriberUpdateFrom(store)
+          expect(whileOffline).toEqual("offline")
+        })
+        await store.refresh()
+        const { connection: afterReconnection } =
+          await subscriberUpdateFrom(store)
+        expect(afterReconnection).toEqual("online")
       })
     })
   })
@@ -124,3 +139,9 @@ const sequence = {
 }
 
 const next = (type: "time" | "message" | "user") => sequence[type]++
+async function withServerOffline(cb: () => Promise<void>) {
+  const originalFetch = window.fetch
+  window.fetch = () => Promise.resolve(new Response(null, { status: 500 }))
+  await cb()
+  window.fetch = originalFetch
+}

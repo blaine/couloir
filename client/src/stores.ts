@@ -43,17 +43,25 @@ export type Message = {
   time: string
 }
 
+export type Messages = {
+  connection: "online" | "offline"
+  list: Message[]
+}
+
 export function getMessageStore() {
-  const messages = writable<Message[]>([])
+  const messages = writable<Messages>({ connection: "offline", list: [] })
   const { subscribe, update, set } = messages
 
   const getMessages = async () => {
     const messageListReq = await fetch("/messages-list")
+    update((messages) => ({
+      ...messages,
+      connection: messageListReq.ok ? "online" : "offline",
+    }))
     const messageListRaw = await messageListReq.text()
     const messageList = messageListRaw === "" ? [] : messageListRaw.split("\n")
-
     const localShas = await Promise.all(
-      get(messages).map(async (m) => {
+      get(messages).list.map(async (m) => {
         const json = JSON.stringify(m)
         const hash = await digestMessage(json)
         return hash
@@ -94,7 +102,10 @@ export function getMessageStore() {
       .split("\n")
       .filter((v) => v != "")
       .map((m) => JSON.parse(m))
-    update((messages) => [...messages, ...serverMessages])
+    update((messages) => ({
+      connection: "online",
+      list: [...messages.list, ...serverMessages],
+    }))
   }
 
   return {
@@ -107,15 +118,21 @@ export function getMessageStore() {
           "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
         },
       })
-      update((messages) => [...messages, message])
+      update((messages) => ({
+        connection: "online",
+        list: [...messages.list, message],
+      }))
     },
 
     init: async () => {
-      set([])
+      set({ connection: "offline", list: [] })
       return await getMessages()
     },
 
-    poll: () => setInterval(getMessages, 1000),
+    poll: () =>
+      setInterval(() => {
+        getMessages().catch(() => console.error("yo"))
+      }, 1000),
     refresh: getMessages,
   }
 }
