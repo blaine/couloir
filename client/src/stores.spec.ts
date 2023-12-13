@@ -103,9 +103,7 @@ describe(getMessageStore.name, () => {
       await store.init()
       await server.send(a.message({ message: "hello" }))
       await store.refresh()
-      const messages = await new Promise<Message[]>((resolve) => {
-        store.subscribe(resolve)
-      })
+      const messages = await subscriberUpdateFrom(store)
       expect(messages.map((message) => message.message)).toEqual(["hello"])
     })
   })
@@ -129,9 +127,7 @@ describe(getMessageStore.name, () => {
       })
       window.fetch = originalFetch
       await store.refresh()
-      const messages = await new Promise<Message[]>((resolve) => {
-        store.subscribe(resolve)
-      })
+      const messages = await subscriberUpdateFrom(store)
       expect(messages.map((message) => message.message)).toEqual(["A message"])
     })
   })
