@@ -40,11 +40,7 @@ describe(getMessageStore.name, () => {
 
   it("sends a message", async () => {
     const store = getMessageStore()
-    await store.send({
-      time: new Date().getTime().toString(),
-      message: "A message",
-      user: "An Author",
-    })
+    await store.send(a.message())
     expect((await fs.readdir(dataPath)).length).toEqual(1)
     expect((await server.messagesList()).length).toEqual(1)
   })
@@ -61,32 +57,19 @@ describe(getMessageStore.name, () => {
 
     describe("when messages exist on the server", () => {
       beforeEach(async () => {
-        await server.send({
-          time: "123",
-          message: "A message",
-          user: "An Author",
-        })
-        await server.send({
-          time: "456",
-          message: "Another message",
-          user: "An Author",
-        })
+        await server.send(a.message({ time: "1", message: "one" }))
+        await server.send(a.message({ time: "2", message: "two" }))
       })
 
       it("populates with the messages from the server", async () => {
         const store = getMessageStore()
         await store.init()
-        await server.send({
-          time: "456",
-          message: "Another message",
-          user: "An Author",
-        })
         const messages = await subscriberUpdateFrom(store)
         expect(
           messages
             .sort((a, b) => Number(a.time) - Number(b.time))
             .map((message) => message.message),
-        ).toEqual(["A message", "Another message"])
+        ).toEqual(["one", "two"])
       })
     })
   })
@@ -95,11 +78,7 @@ describe(getMessageStore.name, () => {
     it("populates with new messages that have arrived on the server", async () => {
       const store = getMessageStore()
       await store.init()
-      await server.send({
-        time: "123",
-        message: "A message",
-        user: "An Author",
-      })
+      await server.send(a.message())
       await store.refresh()
       const messages = await subscriberUpdateFrom(store)
       expect(messages.map((message) => message.message)).toEqual(["A message"])
@@ -118,11 +97,7 @@ describe(getMessageStore.name, () => {
       try {
         await store.refresh()
       } catch {}
-      await server.send({
-        time: "123",
-        message: "A message",
-        user: "An Author",
-      })
+      await server.send(a.message())
       window.fetch = originalFetch
       await store.refresh()
       const messages = await subscriberUpdateFrom(store)
@@ -135,4 +110,13 @@ async function subscriberUpdateFrom<T>(store: Readable<T>) {
   return new Promise<T>((resolve) => {
     store.subscribe(resolve)
   })
+}
+
+const a = {
+  message: (props: Partial<Message> = {}) => ({
+    time: "123",
+    message: "A message",
+    user: "An Author",
+    ...props,
+  }),
 }
