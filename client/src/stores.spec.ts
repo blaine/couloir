@@ -9,20 +9,22 @@ const port = 3000
 const dataPath = "tmp/data"
 app(dataPath).listen(port)
 
+const url = (path: string) => `http://localhost:${port}${path}`
+
 // patch the full URL into our fetch calls so they'll hit the server
 window.fetch = async (path, init) => {
   return nodeFetch(
-    `http://localhost:${port}${path}`,
+    url(path.toString()),
     init as NodeFetchRequestInit,
   ) as unknown as Promise<Response>
 }
 
 const server = {
-  reset: async () => await fetch("/messages", { method: "delete" }),
+  reset: async () => await nodeFetch(url("/messages"), { method: "delete" }),
   messagesList: async () =>
-    (await (await fetch("/messages-list")).text()).split("\n"),
+    (await (await nodeFetch(url("/messages-list"))).text()).split("\n"),
   send: async (message: Message) => {
-    await fetch("/messages", {
+    await nodeFetch(url("/messages"), {
       method: "POST",
       body: new URLSearchParams(message),
       headers: {
@@ -101,6 +103,32 @@ describe(getMessageStore.name, () => {
         message: "A message",
         user: "An Author",
       })
+      await store.refresh()
+      const messages = await new Promise<Message[]>((resolve) => {
+        store.subscribe(resolve)
+      })
+      expect(messages.map((message) => message.message)).toEqual(["A message"])
+    })
+  })
+
+  describe("if the connection to the server goes offline", () => {
+    it("populates with messages that other people posted to the server while the connection was down", async () => {
+      const store = getMessageStore()
+      await store.init()
+      const originalFetch = window.fetch
+      window.fetch = () => {
+        throw new TypeError("Load failed")
+      }
+      // TODO: handle this and send a message to subscribers that we're offline
+      try {
+        await store.refresh()
+      } catch {}
+      await server.send({
+        time: "123",
+        message: "A message",
+        user: "An Author",
+      })
+      window.fetch = originalFetch
       await store.refresh()
       const messages = await new Promise<Message[]>((resolve) => {
         store.subscribe(resolve)
