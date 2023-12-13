@@ -75,6 +75,11 @@ describe(getMessageStore.name, () => {
       it("populates with the messages from the server", async () => {
         const store = getMessageStore()
         await store.init()
+        await server.send({
+          time: "456",
+          message: "Another message",
+          user: "An Author",
+        })
         const messages = await new Promise<Message[]>((resolve) => {
           store.subscribe(resolve)
         })
@@ -84,6 +89,23 @@ describe(getMessageStore.name, () => {
             .map((message) => message.message),
         ).toEqual(["A message", "Another message"])
       })
+    })
+  })
+
+  describe("refresh", () => {
+    it("populates with new messages that have arrived on the server", async () => {
+      const store = getMessageStore()
+      await store.init()
+      await server.send({
+        time: "123",
+        message: "A message",
+        user: "An Author",
+      })
+      await store.refresh()
+      const messages = await new Promise<Message[]>((resolve) => {
+        store.subscribe(resolve)
+      })
+      expect(messages.map((message) => message.message)).toEqual(["A message"])
     })
   })
 })

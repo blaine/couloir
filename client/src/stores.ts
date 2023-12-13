@@ -117,8 +117,7 @@ export function getMessageStore() {
       return await getMessages()
     },
 
-    poll: () => {
-      setInterval(getMessages, 1000)
-    },
+    poll: () => setInterval(getMessages, 1000),
+    refresh: getMessages,
   }
 }
