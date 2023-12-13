@@ -78,30 +78,30 @@ describe(getMessageStore.name, () => {
     it("populates with new messages that have arrived on the server", async () => {
       const store = getMessageStore()
       await store.init()
-      await server.send(a.message())
+      await server.send(a.message({ message: "hello" }))
       await store.refresh()
       const messages = await subscriberUpdateFrom(store)
-      expect(messages.map((message) => message.message)).toEqual(["A message"])
+      expect(messages.map((message) => message.message)).toEqual(["hello"])
     })
-  })
 
-  describe("if the connection to the server goes offline", () => {
-    it("populates with messages that other people posted to the server while the connection was down", async () => {
-      const store = getMessageStore()
-      await store.init()
-      const originalFetch = window.fetch
-      window.fetch = () => {
-        throw new TypeError("Load failed")
-      }
-      // TODO: handle this and send a message to subscribers that we're offline
-      try {
+    describe("when different messages exist on the client and server", () => {
+      it("merges them together", async () => {
+        await Promise.all(
+          Array.from({ length: 3 }, () => {
+            server.send(a.message())
+          }),
+        )
+        const store = getMessageStore()
+        await store.init()
+        await Promise.all(
+          Array.from({ length: 10 }, () => {
+            server.send(a.message())
+          }),
+        )
         await store.refresh()
-      } catch {}
-      await server.send(a.message())
-      window.fetch = originalFetch
-      await store.refresh()
-      const messages = await subscriberUpdateFrom(store)
-      expect(messages.map((message) => message.message)).toEqual(["A message"])
+        const messages = await subscriberUpdateFrom(store)
+        expect(messages.length).toEqual(13)
+      })
     })
   })
 })
@@ -114,9 +114,17 @@ async function subscriberUpdateFrom<T>(store: Readable<T>) {
 
 const a = {
   message: (props: Partial<Message> = {}) => ({
-    time: "123",
-    message: "A message",
-    user: "An Author",
+    time: String(next("time")),
+    message: `A message ${next("message")}`,
+    user: `An Author ${next("user")}`,
     ...props,
   }),
 }
+
+const sequence = {
+  time: 0,
+  message: 0,
+  user: 0,
+}
+
+const next = (type: "time" | "message" | "user") => sequence[type]++
