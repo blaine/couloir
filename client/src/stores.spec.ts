@@ -109,6 +109,32 @@ describe(getMessageStore.name, () => {
       expect(messages.map((message) => message.message)).toEqual(["hello"])
     })
   })
+
+  describe("if the connection to the server goes offline", () => {
+    it("populates with messages that other people posted to the server while the connection was down", async () => {
+      const store = getMessageStore()
+      await store.init()
+      const originalFetch = window.fetch
+      window.fetch = () => {
+        throw new TypeError("Load failed")
+      }
+      // TODO: handle this and send a message to subscribers that we're offline
+      try {
+        await store.refresh()
+      } catch {}
+      await server.send({
+        time: "123",
+        message: "A message",
+        user: "An Author",
+      })
+      window.fetch = originalFetch
+      await store.refresh()
+      const messages = await new Promise<Message[]>((resolve) => {
+        store.subscribe(resolve)
+      })
+      expect(messages.map((message) => message.message)).toEqual(["A message"])
+    })
+  })
 })
 
 async function repeat(iterations: number, action: () => Promise<void>) {
