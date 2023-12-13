@@ -23,8 +23,7 @@
   })
 
   const displayMessages = derived(messages, ($messages) => {
-    const arr = Object.values($messages)
-    return arr
+    return $messages
       .sort((a, b) => Number(b.time) - Number(a.time)) // TODO: just use numbers!?
       .slice(0, showMessages)
       .reverse()
