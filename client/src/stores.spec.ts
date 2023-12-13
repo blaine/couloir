@@ -120,11 +120,7 @@ describe(getMessageStore.name, () => {
       try {
         await store.refresh()
       } catch {}
-      await server.send({
-        time: "123",
-        message: "A message",
-        user: "An Author",
-      })
+      await server.send(a.message({ message: "A message" }))
       window.fetch = originalFetch
       await store.refresh()
       const messages = await subscriberUpdateFrom(store)
