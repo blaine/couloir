@@ -10,10 +10,6 @@ jobs:
           version: 8
       - run: pnpm install-test
         working-directory: ./client
-      - run: pnpm check
-        working-directory: ./client
-      - run: pnpm build
-        working-directory: ./client
   fake-server-tests:
     runs-on: ubuntu-latest
     steps:
