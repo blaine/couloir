@@ -52,6 +52,8 @@ export function getMessageStore() {
     const messageListRaw = await messageListReq.text()
     const messageList = messageListRaw === "" ? [] : messageListRaw.split("\n")
 
+    console.log("message-list:", messageList.length)
+
     const localShas = await Promise.all(
       get(messages).map(async (m) => {
         const json = JSON.stringify(m)
