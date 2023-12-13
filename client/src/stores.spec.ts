@@ -4,6 +4,7 @@ import nodeFetch from "node-fetch"
 import { type RequestInit as NodeFetchRequestInit } from "node-fetch"
 import app from "../../fake-server/src/app"
 import { promises as fs } from "fs"
+import type { Readable } from "svelte/store"
 
 const port = 3000
 const dataPath = "tmp/data"
@@ -53,9 +54,7 @@ describe(getMessageStore.name, () => {
       it("populates with an empty list", async () => {
         const store = getMessageStore()
         await store.init()
-        const messages = await new Promise<Message[]>((resolve) => {
-          store.subscribe(resolve)
-        })
+        const messages = await subscriberUpdateFrom(store)
         expect(messages).toEqual([])
       })
     })
@@ -82,9 +81,7 @@ describe(getMessageStore.name, () => {
           message: "Another message",
           user: "An Author",
         })
-        const messages = await new Promise<Message[]>((resolve) => {
-          store.subscribe(resolve)
-        })
+        const messages = await subscriberUpdateFrom(store)
         expect(
           messages
             .sort((a, b) => Number(a.time) - Number(b.time))
@@ -104,9 +101,7 @@ describe(getMessageStore.name, () => {
         user: "An Author",
       })
       await store.refresh()
-      const messages = await new Promise<Message[]>((resolve) => {
-        store.subscribe(resolve)
-      })
+      const messages = await subscriberUpdateFrom(store)
       expect(messages.map((message) => message.message)).toEqual(["A message"])
     })
   })
@@ -130,10 +125,14 @@ describe(getMessageStore.name, () => {
       })
       window.fetch = originalFetch
       await store.refresh()
-      const messages = await new Promise<Message[]>((resolve) => {
-        store.subscribe(resolve)
-      })
+      const messages = await subscriberUpdateFrom(store)
       expect(messages.map((message) => message.message)).toEqual(["A message"])
     })
   })
 })
+
+async function subscriberUpdateFrom<T>(store: Readable<T>) {
+  return new Promise<T>((resolve) => {
+    store.subscribe(resolve)
+  })
+}
