@@ -96,6 +96,19 @@ describe(getMessageStore.name, () => {
       })
     })
   })
+
+  describe("refresh", () => {
+    it("populates with new messages that have arrived on the server", async () => {
+      const store = getMessageStore()
+      await store.init()
+      await server.send(a.message({ message: "hello" }))
+      await store.refresh()
+      const messages = await new Promise<Message[]>((resolve) => {
+        store.subscribe(resolve)
+      })
+      expect(messages.map((message) => message.message)).toEqual(["hello"])
+    })
+  })
 })
 
 async function repeat(iterations: number, action: () => Promise<void>) {
