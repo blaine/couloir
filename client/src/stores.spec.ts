@@ -86,18 +86,10 @@ describe(getMessageStore.name, () => {
 
     describe("when different messages exist on the client and server", () => {
       it("merges them together", async () => {
-        await Promise.all(
-          Array.from({ length: 3 }, () => {
-            server.send(a.message())
-          }),
-        )
+        await repeat(3, () => server.send(a.message()))
         const store = getMessageStore()
         await store.init()
-        await Promise.all(
-          Array.from({ length: 10 }, () => {
-            server.send(a.message())
-          }),
-        )
+        await repeat(10, () => server.send(a.message()))
         await store.refresh()
         const messages = await subscriberUpdateFrom(store)
         expect(messages.length).toEqual(13)
@@ -105,6 +97,10 @@ describe(getMessageStore.name, () => {
     })
   })
 })
+
+async function repeat(iterations: number, action: () => Promise<void>) {
+  return Promise.all([...Array(iterations).keys()].map(action))
+}
 
 async function subscriberUpdateFrom<T>(store: Readable<T>) {
   return new Promise<T>((resolve) => {
