@@ -34,18 +34,33 @@ export class Message {
     message,
     user,
     time,
+    sent = true,
   }: {
     message: string
     user: string
     time: string
+    sent?: boolean
   }): Message {
-    return new Message(message, user, time)
+    return new Message(message, user, time, sent)
   }
   constructor(
     public readonly message: string,
     public readonly user: string,
     public readonly time: string,
+    public readonly sent = false,
   ) {}
+
+  equalTo(other: Message): boolean {
+    return (
+      this.message === other.message &&
+      this.user === other.user &&
+      this.time === other.time
+    )
+  }
+
+  withSentStatus(ok: boolean): Message {
+    return new Message(this.message, this.user, this.time, ok)
+  }
 
   public toJSON() {
     return {
@@ -67,6 +82,28 @@ export class Message {
 export function getMessageStore() {
   const messages = writable<Message[]>([])
   const { subscribe, update, set } = messages
+
+  const sendMessages = async () => {
+    const unsent = get(messages)
+      .map(Message.from)
+      .filter((message) => !message.sent)
+    for (const message of unsent) {
+      const response = await fetch("/messages", {
+        method: "POST",
+        body: new URLSearchParams(message.toJSON()),
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+        },
+      })
+      update((messages) =>
+        messages.map((someMessage) =>
+          someMessage.equalTo(message)
+            ? message.withSentStatus(response.ok)
+            : someMessage,
+        ),
+      )
+    }
+  }
 
   const getMessages = async () => {
     const messageListReq = await fetch("/messages-list")
@@ -116,17 +153,22 @@ export function getMessageStore() {
     update((messages) => [...messages, ...serverMessages])
   }
 
+  const refresh = async () => {
+    await getMessages()
+    await sendMessages()
+  }
+
   return {
     subscribe,
     send: async (message: Message) => {
-      await fetch("/messages", {
+      const response = await fetch("/messages", {
         method: "POST",
         body: new URLSearchParams(message.toJSON()),
         headers: {
           "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
         },
       })
-      update((messages) => [...messages, message])
+      update((messages) => [...messages, message.withSentStatus(response.ok)])
     },
 
     init: async () => {
@@ -134,7 +176,7 @@ export function getMessageStore() {
       return await getMessages()
     },
 
-    poll: () => setInterval(getMessages, 1000),
-    refresh: getMessages,
+    poll: () => setInterval(refresh, 1000),
+    refresh,
   }
 }

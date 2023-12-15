@@ -26,7 +26,7 @@ const server = {
   send: async (message: Message) => {
     await nodeFetch(url("/messages"), {
       method: "POST",
-      body: new URLSearchParams({ ...message }),
+      body: new URLSearchParams(message.toJSON()),
       headers: {
         "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
       },
@@ -111,6 +111,34 @@ describe(getMessageStore.name, () => {
         expect(messages.length).toEqual(13)
         expect((await server.messagesList()).length).toEqual(13)
       })
+    })
+  })
+
+  describe("message sent status", () => {
+    it("marks a sent message as sent", async () => {
+      const store = getMessageStore()
+      await store.send(a.message())
+      const messages = await subscriberUpdateFrom(store)
+      expect(messages[0].sent).toEqual(true)
+    })
+
+    it("marks a message as not sent if it fails to send", async () => {
+      const store = getMessageStore()
+      await withServerOffline(async () => {
+        await store.send(a.message())
+      })
+      const messages = await subscriberUpdateFrom(store)
+      expect(messages[0].sent).toEqual(false)
+    })
+
+    it("marks an unsent message as sent if it succeeds", async () => {
+      const store = getMessageStore()
+      await withServerOffline(async () => {
+        await store.send(a.message())
+      })
+      await store.refresh()
+      const messages = await subscriberUpdateFrom(store)
+      expect(messages[0].sent).toEqual(true)
     })
   })
 })
