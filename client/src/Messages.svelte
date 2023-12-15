@@ -4,7 +4,7 @@
   import MessageInput from "./MessageInput.svelte"
   import MessageList from "./MessageList.svelte"
   import ScrollToBottom from "./ScrollToBottom.svelte"
-  import { getMessageStore, user } from "./stores"
+  import { Message, getMessageStore, user } from "./stores"
   import Spinner from "./ui/Spinner.svelte"
 
   const ADD_ON_SCROLL = 50 // messages to add when scrolling to the top
@@ -50,7 +50,7 @@
 
   function handleNewMessage(msg: string) {
     const now = new Date().getTime()
-    const message = { message: msg, user: $user, time: `${now}` }
+    const message = Message.from({ message: msg, user: $user, time: `${now}` })
     messages.send(message)
   }
 

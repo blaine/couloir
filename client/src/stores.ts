@@ -37,10 +37,31 @@ async function digestMessage(message: string) {
   return hashHex
 }
 
-export type Message = {
-  message: string
-  user: string
-  time: string
+export class Message {
+  static from({
+    message,
+    user,
+    time,
+  }: {
+    message: string
+    user: string
+    time: string
+  }): Message {
+    return new Message(message, user, time)
+  }
+  constructor(
+    public readonly message: string,
+    public readonly user: string,
+    public readonly time: string,
+  ) {}
+
+  public toJSON() {
+    return {
+      message: this.message,
+      user: this.user,
+      time: this.time,
+    }
+  }
 }
 
 export function getMessageStore() {
@@ -102,7 +123,7 @@ export function getMessageStore() {
     send: async (message: Message) => {
       await fetch("/messages", {
         method: "POST",
-        body: new URLSearchParams(message),
+        body: new URLSearchParams(message.toJSON()),
         headers: {
           "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
         },

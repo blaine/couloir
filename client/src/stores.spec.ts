@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll } from "vitest"
-import { getMessageStore, type Message } from "./stores"
+import { getMessageStore, Message } from "./stores"
 import nodeFetch from "node-fetch"
 import { type RequestInit as NodeFetchRequestInit } from "node-fetch"
 import app from "../../fake-server/src/app"
@@ -26,7 +26,7 @@ const server = {
   send: async (message: Message) => {
     await nodeFetch(url("/messages"), {
       method: "POST",
-      body: new URLSearchParams(message),
+      body: new URLSearchParams({ ...message }),
       headers: {
         "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
       },
@@ -126,12 +126,13 @@ async function subscriberUpdateFrom<T>(store: Readable<T>) {
 }
 
 const a = {
-  message: (props: Partial<Message> = {}) => ({
-    time: String(next("time")),
-    message: `A message ${next("message")}`,
-    user: `An Author ${next("user")}`,
-    ...props,
-  }),
+  message: (props: Partial<Message> = {}) =>
+    Message.from({
+      time: String(next("time")),
+      message: `A message ${next("message")}`,
+      user: `An Author ${next("user")}`,
+      ...props,
+    }),
 }
 
 const sequence = {
