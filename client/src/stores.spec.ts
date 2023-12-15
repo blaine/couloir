@@ -86,7 +86,7 @@ describe(getMessageStore.name, () => {
       expect(messages.map((message) => message.message)).toEqual(["hello"])
     })
 
-    describe("when different messages exist on the client and server", () => {
+    describe("when messages exist on the server that the client doesn't have", () => {
       it("merges them together", async () => {
         await repeat(3, () => server.send(a.message()))
         const store = getMessageStore()
@@ -95,6 +95,21 @@ describe(getMessageStore.name, () => {
         await store.refresh()
         const messages = await subscriberUpdateFrom(store)
         expect(messages.length).toEqual(13)
+      })
+    })
+
+    describe("when messages exist on the client that the server doesn't have", () => {
+      it("merges them together", async () => {
+        const store = getMessageStore()
+        await store.init()
+        await repeat(3, () => store.send(a.message()))
+        await withServerOffline(async () => {
+          await repeat(10, () => store.send(a.message()))
+        })
+        await store.refresh()
+        const messages = await subscriberUpdateFrom(store)
+        expect(messages.length).toEqual(13)
+        expect((await server.messagesList()).length).toEqual(13)
       })
     })
   })
@@ -126,3 +141,10 @@ const sequence = {
 }
 
 const next = (type: "time" | "message" | "user") => sequence[type]++
+
+async function withServerOffline(cb: () => Promise<void>) {
+  const originalFetch = window.fetch
+  window.fetch = () => Promise.resolve(new Response(null, { status: 500 }))
+  await cb()
+  window.fetch = originalFetch
+}
