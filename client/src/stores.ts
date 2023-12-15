@@ -29,14 +29,6 @@ export const nav = localStorageStore({
 
 export const user = localStorageStore({ storageKey: "chat_user" })
 
-async function digestMessage(message: string) {
-  const msgUint8 = new TextEncoder().encode(message) // encode as (utf-8) Uint8Array
-  const hashBuffer = await crypto.subtle.digest("SHA-256", msgUint8) // hash the message
-  const hashArray = Array.from(new Uint8Array(hashBuffer)) // convert buffer to byte array
-  const hashHex = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("") // convert bytes to hex string
-  return hashHex
-}
-
 export class Message {
   static from({
     message,
@@ -62,6 +54,14 @@ export class Message {
       time: this.time,
     }
   }
+
+  public async toHash(): Promise<string> {
+    const json = JSON.stringify(this)
+    const msgUint8 = new TextEncoder().encode(json) // encode as (utf-8) Uint8Array
+    const hashBuffer = await crypto.subtle.digest("SHA-256", msgUint8) // hash the message
+    const hashArray = Array.from(new Uint8Array(hashBuffer)) // convert buffer to byte array
+    return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("") // convert bytes to hex string
+  }
 }
 
 export function getMessageStore() {
@@ -74,11 +74,9 @@ export function getMessageStore() {
     const messageList = messageListRaw === "" ? [] : messageListRaw.split("\n")
 
     const localShas = await Promise.all(
-      get(messages).map(async (m) => {
-        const json = JSON.stringify(m)
-        const hash = await digestMessage(json)
-        return hash
-      }),
+      get(messages)
+        .map(Message.from)
+        .map(async (message) => await message.toHash()),
     )
 
     let ranges = []
