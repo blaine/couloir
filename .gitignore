@@ -130,3 +130,5 @@ dist
 .pnp.*
 
 fake-server/data/*
+fake-server/tmp/*
+client/tmp/*
