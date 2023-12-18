@@ -117,5 +117,9 @@ export default async (dataPath: string) => {
     res.redirect("/")
   })
 
+  app.post("/sync", async (req, res) => {
+    res.send("ok")
+  })
+
   return app
 }

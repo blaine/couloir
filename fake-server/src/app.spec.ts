@@ -1,5 +1,6 @@
 import supertest from "supertest"
 import app from "./app"
+import * as http from "http"
 import {
   assertThat,
   containsInAnyOrder,
@@ -162,6 +163,45 @@ describe("messages server", () => {
             )
           })
         })
+      })
+    })
+
+    describe("POST /sync", () => {
+      let remoteServer: http.Server
+      const port = 3001
+      beforeEach(async () => {
+        const remoteApp = await app("tm/remote-data")
+        remoteServer = remoteApp.listen(port)
+      })
+      afterEach(async () => {
+        await new Promise((resolve) => remoteServer.close(resolve))
+      })
+
+      describe("when the remote server has no messages", () => {
+        it("sends all the local messages to the remote server", async () => {
+          await reset()
+          await Promise.all([
+            postMessage("one"),
+            postMessage("two"),
+            postMessage("three"),
+          ])
+          await request
+            .post("/sync")
+            .type("text")
+            .send(`http://localhost:${port}`)
+            .expect(200)
+          const messagesList = await (
+            await fetch(`http://localhost:${port}/messages-list`)
+          ).text()
+          assertThat(
+            messagesList,
+            equalTo((await request.get("/messages-list")).text)
+          )
+        })
+      })
+
+      describe("when the remote server has messages that the local server does not", () => {
+        it("fetches the remote messages", async () => {})
       })
     })
   })
