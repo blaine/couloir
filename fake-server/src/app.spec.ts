@@ -168,10 +168,10 @@ describe("messages server", () => {
 
     describe("POST /sync", () => {
       let remoteServer: http.Server
-      const port = 3001
+      const remoteServerPort = 3001
       beforeEach(async () => {
         const remoteApp = await app("tm/remote-data")
-        remoteServer = remoteApp.listen(port)
+        remoteServer = remoteApp.listen(remoteServerPort)
       })
       afterEach(async () => {
         await new Promise((resolve) => remoteServer.close(resolve))
@@ -188,10 +188,10 @@ describe("messages server", () => {
           await request
             .post("/sync")
             .type("text")
-            .send(`http://localhost:${port}`)
+            .send(`http://localhost:${remoteServerPort}`)
             .expect(200)
           const messagesList = await (
-            await fetch(`http://localhost:${port}/messages-list`)
+            await fetch(`http://localhost:${remoteServerPort}/messages-list`)
           ).text()
           assertThat(
             messagesList,
@@ -201,7 +201,27 @@ describe("messages server", () => {
       })
 
       describe("when the remote server has messages that the local server does not", () => {
-        it("fetches the remote messages", async () => {})
+        it("fetches the remote messages", async () => {
+          await reset()
+          await Promise.all([postMessage("one"), postMessage("two")])
+          await fetch(`http://localhost:${remoteServerPort}/messages`, {
+            method: "POST",
+            body: new URLSearchParams({ message: "three" }),
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          })
+          await request
+            .post("/sync")
+            .type("text")
+            .send(`http://localhost:${remoteServerPort}`)
+            .expect(200)
+          const messagesList = await (
+            await fetch(`http://localhost:${remoteServerPort}/messages-list`)
+          ).text()
+          assertThat(
+            messagesList,
+            equalTo((await request.get("/messages-list")).text)
+          )
+        })
       })
     })
   })
