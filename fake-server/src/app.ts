@@ -13,6 +13,7 @@ export default async (dataPath: string) => {
 
   app.use(express.static(path.join(__dirname, "..", "..", "client", "dist")))
   app.use(express.urlencoded({ extended: false }))
+  app.use(express.text())
 
   app.delete("/messages", async (_, res) => {
     const entries = await fs.readdir(dataPath)
@@ -115,6 +116,17 @@ export default async (dataPath: string) => {
     let hash = crypto.createHash("sha256").update(message).digest("hex")
     await fs.writeFile(`${dataPath}/${hash}`, JSON.stringify(req.body))
     res.redirect("/")
+  })
+
+  app.post("/sync", async (req, res) => {
+    const url = req.body
+    const entries = await fs.readdir(dataPath)
+    for (const entry of entries) {
+      const message = (await fs.readFile(path.join(dataPath, entry))).toString()
+      const body = new URLSearchParams(JSON.parse(message))
+      await fetch(url + "/messages", { method: "POST", body })
+    }
+    res.send("ok")
   })
 
   return app
