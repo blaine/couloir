@@ -29,23 +29,81 @@ export const nav = localStorageStore({
 
 export const user = localStorageStore({ storageKey: "chat_user" })
 
-async function digestMessage(message: string) {
-  const msgUint8 = new TextEncoder().encode(message) // encode as (utf-8) Uint8Array
-  const hashBuffer = await crypto.subtle.digest("SHA-256", msgUint8) // hash the message
-  const hashArray = Array.from(new Uint8Array(hashBuffer)) // convert buffer to byte array
-  const hashHex = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("") // convert bytes to hex string
-  return hashHex
-}
+export class Message {
+  static from({
+    message,
+    user,
+    time,
+    sent = true,
+  }: {
+    message: string
+    user: string
+    time: string
+    sent?: boolean
+  }): Message {
+    return new Message(message, user, time, sent)
+  }
+  constructor(
+    public readonly message: string,
+    public readonly user: string,
+    public readonly time: string,
+    public readonly sent = false,
+  ) {}
 
-export type Message = {
-  message: string
-  user: string
-  time: string
+  equalTo(other: Message): boolean {
+    return (
+      this.message === other.message &&
+      this.user === other.user &&
+      this.time === other.time
+    )
+  }
+
+  withSentStatus(ok: boolean): Message {
+    return new Message(this.message, this.user, this.time, ok)
+  }
+
+  public toJSON() {
+    return {
+      message: this.message,
+      user: this.user,
+      time: this.time,
+    }
+  }
+
+  public async toHash(): Promise<string> {
+    const json = JSON.stringify(this)
+    const msgUint8 = new TextEncoder().encode(json) // encode as (utf-8) Uint8Array
+    const hashBuffer = await crypto.subtle.digest("SHA-256", msgUint8) // hash the message
+    const hashArray = Array.from(new Uint8Array(hashBuffer)) // convert buffer to byte array
+    return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("") // convert bytes to hex string
+  }
 }
 
 export function getMessageStore() {
   const messages = writable<Message[]>([])
   const { subscribe, update, set } = messages
+
+  const sendMessages = async () => {
+    const unsent = get(messages)
+      .map(Message.from)
+      .filter((message) => !message.sent)
+    for (const message of unsent) {
+      const response = await fetch("/messages", {
+        method: "POST",
+        body: new URLSearchParams(message.toJSON()),
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+        },
+      })
+      update((messages) =>
+        messages.map((someMessage) =>
+          someMessage.equalTo(message)
+            ? message.withSentStatus(response.ok)
+            : someMessage,
+        ),
+      )
+    }
+  }
 
   const getMessages = async () => {
     const messageListReq = await fetch("/messages-list")
@@ -53,11 +111,9 @@ export function getMessageStore() {
     const messageList = messageListRaw === "" ? [] : messageListRaw.split("\n")
 
     const localShas = await Promise.all(
-      get(messages).map(async (m) => {
-        const json = JSON.stringify(m)
-        const hash = await digestMessage(json)
-        return hash
-      }),
+      get(messages)
+        .map(Message.from)
+        .map(async (message) => await message.toHash()),
     )
 
     let ranges = []
@@ -97,17 +153,22 @@ export function getMessageStore() {
     update((messages) => [...messages, ...serverMessages])
   }
 
+  const refresh = async () => {
+    await getMessages()
+    await sendMessages()
+  }
+
   return {
     subscribe,
     send: async (message: Message) => {
-      await fetch("/messages", {
+      const response = await fetch("/messages", {
         method: "POST",
-        body: new URLSearchParams(message),
+        body: new URLSearchParams(message.toJSON()),
         headers: {
           "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
         },
       })
-      update((messages) => [...messages, message])
+      update((messages) => [...messages, message.withSentStatus(response.ok)])
     },
 
     init: async () => {
@@ -115,7 +176,7 @@ export function getMessageStore() {
       return await getMessages()
     },
 
-    poll: () => setInterval(getMessages, 1000),
-    refresh: getMessages,
+    poll: () => setInterval(refresh, 1000),
+    refresh,
   }
 }

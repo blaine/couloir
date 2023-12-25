@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll } from "vitest"
-import { getMessageStore, type Message } from "./stores"
+import { getMessageStore, Message } from "./stores"
 import nodeFetch from "node-fetch"
 import { type RequestInit as NodeFetchRequestInit } from "node-fetch"
 import app from "../../fake-server/src/app"
@@ -26,7 +26,7 @@ const server = {
   send: async (message: Message) => {
     await nodeFetch(url("/messages"), {
       method: "POST",
-      body: new URLSearchParams(message),
+      body: new URLSearchParams(message.toJSON()),
       headers: {
         "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
       },
@@ -86,7 +86,7 @@ describe(getMessageStore.name, () => {
       expect(messages.map((message) => message.message)).toEqual(["hello"])
     })
 
-    describe("when different messages exist on the client and server", () => {
+    describe("when messages exist on the server that the client doesn't have", () => {
       it("merges them together", async () => {
         await repeat(3, () => server.send(a.message()))
         const store = getMessageStore()
@@ -96,6 +96,49 @@ describe(getMessageStore.name, () => {
         const messages = await subscriberUpdateFrom(store)
         expect(messages.length).toEqual(13)
       })
+    })
+
+    describe("when messages exist on the client that the server doesn't have", () => {
+      it("merges them together", async () => {
+        const store = getMessageStore()
+        await store.init()
+        await repeat(3, () => store.send(a.message()))
+        await withServerOffline(async () => {
+          await repeat(10, () => store.send(a.message()))
+        })
+        await store.refresh()
+        const messages = await subscriberUpdateFrom(store)
+        expect(messages.length).toEqual(13)
+        expect((await server.messagesList()).length).toEqual(13)
+      })
+    })
+  })
+
+  describe("message sent status", () => {
+    it("marks a sent message as sent", async () => {
+      const store = getMessageStore()
+      await store.send(a.message())
+      const messages = await subscriberUpdateFrom(store)
+      expect(messages[0].sent).toEqual(true)
+    })
+
+    it("marks a message as not sent if it fails to send", async () => {
+      const store = getMessageStore()
+      await withServerOffline(async () => {
+        await store.send(a.message())
+      })
+      const messages = await subscriberUpdateFrom(store)
+      expect(messages[0].sent).toEqual(false)
+    })
+
+    it("marks an unsent message as sent if it succeeds", async () => {
+      const store = getMessageStore()
+      await withServerOffline(async () => {
+        await store.send(a.message())
+      })
+      await store.refresh()
+      const messages = await subscriberUpdateFrom(store)
+      expect(messages[0].sent).toEqual(true)
     })
   })
 })
@@ -111,12 +154,13 @@ async function subscriberUpdateFrom<T>(store: Readable<T>) {
 }
 
 const a = {
-  message: (props: Partial<Message> = {}) => ({
-    time: String(next("time")),
-    message: `A message ${next("message")}`,
-    user: `An Author ${next("user")}`,
-    ...props,
-  }),
+  message: (props: Partial<Message> = {}) =>
+    Message.from({
+      time: String(next("time")),
+      message: `A message ${next("message")}`,
+      user: `An Author ${next("user")}`,
+      ...props,
+    }),
 }
 
 const sequence = {
@@ -126,3 +170,10 @@ const sequence = {
 }
 
 const next = (type: "time" | "message" | "user") => sequence[type]++
+
+async function withServerOffline(cb: () => Promise<void>) {
+  const originalFetch = window.fetch
+  window.fetch = () => Promise.resolve(new Response(null, { status: 500 }))
+  await cb()
+  window.fetch = originalFetch
+}
