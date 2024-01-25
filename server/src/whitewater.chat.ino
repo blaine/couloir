@@ -20,7 +20,7 @@
 #define SPI_MOSI 17
 #define SPI_MISO 16
 #define SPI_CS 15
-// SPISettings spiSettings(4000000, MSBFIRST, SPI_MODE0); 
+// SPISettings spiSettings(4000000, MSBFIRST, SPI_MODE0);
 
 #define DNS_PORT 53
 // IPAddress apIP(192, 168, 4, 1);
@@ -33,7 +33,8 @@ int hasRead = 0;
 
 char redirectURL[30];
 
-void setup() {
+void setup()
+{
   Serial.begin(115200);
 
   WiFi.softAP("Whitewater Chat");
@@ -71,15 +72,21 @@ void setup() {
 
   // Serial.println("SD Card initialized.");
 
-  if (!SD.begin(18)) {
+  if (!SD.begin(18))
+  {
     Serial.println("Error initializing SD Card");
-  } else {
+  }
+  else
+  {
     Serial.println("Maybe initialized SD card?");
   }
   File myFile = SD.open("/myfile.txt", FILE_WRITE);
-  if (!myFile) {
+  if (!myFile)
+  {
     Serial.println("no file");
-  } else {
+  }
+  else
+  {
     Serial.println("I think I have a file.");
   }
   myFile.println("test! yo");
@@ -88,7 +95,6 @@ void setup() {
   Serial.println("well, we made it this far...");
 
   Serial.println("tada");
-
 
   app.post("/message", &handleMessage);
   app.use(&fileServer);
@@ -99,13 +105,16 @@ void setup() {
 }
 
 // the loop function runs over and over again forever
-void loop() {
-  if (hasRead == 0) {
+void loop()
+{
+  if (hasRead == 0)
+  {
     Serial.println("When the tough gets going, the tough use print.");
     File readFile = SD.open("/myfile.txt", FILE_READ); // Replace 'test.txt' with your file name
 
     // Read from the file until there's nothing else in it:
-    while (readFile.available()) {
+    while (readFile.available())
+    {
       Serial.print((char)readFile.read());
     }
     Serial.println("\n");
@@ -115,37 +124,42 @@ void loop() {
 
     hasRead = 1;
   }
-  
+
   // neopixelWrite(RGB_BUILTIN, 0, RGB_BRIGHTNESS, RGB_BRIGHTNESS);  // Green
 
   dnsServer.processNextRequest();
 
-  WiFiClient client = server.available();   // listen for incoming clients
-  if (client.connected()) {
+  WiFiClient client = server.available(); // listen for incoming clients
+  if (client.connected())
+  {
     app.process(&client);
     client.stop();
   }
 }
 
-void handleMessage(Request &req, Response &res) {
+void handleMessage(Request &req, Response &res)
+{
   char name[8];
   char value[200];
-  
-  if (!req.form(name, 8, value, 200)) {
-    Serial.println("well this is a stupid place to fail")
+
+  if (!req.form(name, 8, value, 200))
+  {
+    Serial.println("well this is a stupid place to fail");
     return res.sendStatus(400);
   }
 
   Serial.println(name);
   Serial.println(value);
 
-  if (!SD.exists("/chatlog")) {
+  if (!SD.exists("/chatlog"))
+  {
     SD.open("/chatlog", FILE_WRITE).close();
   }
 
   File file = SD.open("/chatlog", FILE_APPEND);
 
-  if (!file) {
+  if (!file)
+  {
     res.sendStatus(500);
     return;
   }
@@ -153,57 +167,79 @@ void handleMessage(Request &req, Response &res) {
   file.printf("{\"message\": \"%s\"}\n", value);
   file.close();
 
-
   res.sendStatus(200);
 }
 
-String getContentType(String filename) {
-  if (filename.endsWith(".htm")) return "text/html";
-  else if (filename.endsWith(".html")) return "text/html";
-  else if (filename.endsWith(".css")) return "text/css";
-  else if (filename.endsWith(".js")) return "application/javascript";
-  else if (filename.endsWith(".png")) return "image/png";
-  else if (filename.endsWith(".gif")) return "image/gif";
-  else if (filename.endsWith(".jpg")) return "image/jpeg";
-  else if (filename.endsWith(".ico")) return "image/x-icon";
-  else if (filename.endsWith(".xml")) return "text/xml";
-  else if (filename.endsWith(".mp4")) return "video/mp4";
-  else if (filename.endsWith(".pdf")) return "application/x-pdf";
-  else if (filename.endsWith(".zip")) return "application/x-zip";
-  else if (filename.endsWith(".gz")) return "application/x-gzip";
+String getContentType(String filename)
+{
+  if (filename.endsWith(".htm"))
+    return "text/html";
+  else if (filename.endsWith(".html"))
+    return "text/html";
+  else if (filename.endsWith(".css"))
+    return "text/css";
+  else if (filename.endsWith(".js"))
+    return "application/javascript";
+  else if (filename.endsWith(".png"))
+    return "image/png";
+  else if (filename.endsWith(".gif"))
+    return "image/gif";
+  else if (filename.endsWith(".jpg"))
+    return "image/jpeg";
+  else if (filename.endsWith(".ico"))
+    return "image/x-icon";
+  else if (filename.endsWith(".xml"))
+    return "text/xml";
+  else if (filename.endsWith(".mp4"))
+    return "video/mp4";
+  else if (filename.endsWith(".pdf"))
+    return "application/x-pdf";
+  else if (filename.endsWith(".zip"))
+    return "application/x-zip";
+  else if (filename.endsWith(".gz"))
+    return "application/x-gzip";
   return "text/plain";
 }
 
-void redirect(Request &req, Response &res) {
-  if (!res.statusSent()) {
+void redirect(Request &req, Response &res)
+{
+  if (!res.statusSent())
+  {
     res.set("Location", redirectURL);
     res.sendStatus(302);
   }
 }
 
-void fileServer(Request &req, Response &res) {
+void fileServer(Request &req, Response &res)
+{
 
-  if (req.method() != Request::GET) {
+  if (req.method() != Request::GET)
+  {
     return;
   }
 
   String path = req.path();
-  if (path.endsWith("/")) path += "index.html";
+  if (path.endsWith("/"))
+    path += "index.html";
 
-  if (SPIFFS.exists(path + ".gz")) path += ".gz";
-  
-  if (!SPIFFS.exists(path)) {
+  if (SPIFFS.exists(path + ".gz"))
+    path += ".gz";
+
+  if (!SPIFFS.exists(path))
+  {
     return;
   }
 
   File file = SPIFFS.open(path);
-  
-  if (file.isDirectory()) {
+
+  if (file.isDirectory())
+  {
     return;
   }
 
   String fileName = file.name();
-  if (fileName.endsWith(".gz")) {
+  if (fileName.endsWith(".gz"))
+  {
     res.set("Content-Encoding", "gzip");
     fileName.remove(fileName.length() - 3, 3);
   }
@@ -212,7 +248,8 @@ void fileServer(Request &req, Response &res) {
 
   res.status(200);
 
-  while (file.available()) {
+  while (file.available())
+  {
     res.write(file.read());
   }
 
