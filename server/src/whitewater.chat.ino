@@ -12,6 +12,7 @@
 #include <FS.h>
 #include <SPI.h>
 #include <SD.h>
+#include <secrets.h>
 
 #define RGB_BUILTIN 8
 #define RGB_BRIGHTNESS 10
@@ -29,6 +30,7 @@ WiFiServer server(80);
 Application app;
 DNSServer dnsServer;
 
+bool isWifiServer = false;
 int hasRead = 0;
 
 char redirectURL[30];
@@ -37,9 +39,32 @@ void setup()
 {
   Serial.begin(115200);
 
-  WiFi.softAP("Whitewater Chat");
-  IPAddress ip = WiFi.softAPIP();
-  sprintf(redirectURL, "http://%d.%d.%d.%d/", ip[0], ip[1], ip[2], ip[3]);
+  bool isWifiClient = false;
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(ssid1, password1);
+  isWifiClient = WiFi.waitForConnectResult() == WL_CONNECTED;
+  if (!isWifiClient)
+  {
+    WiFi.mode(WIFI_STA);
+    WiFi.begin(ssid2, password2);
+    isWifiClient = WiFi.waitForConnectResult() == WL_CONNECTED;
+  }
+
+  if (isWifiClient)
+  {
+    Serial.println("Ready");
+    Serial.print("IP address: ");
+    Serial.println(WiFi.localIP());
+  }
+
+  if (!isWifiClient)
+  {
+    WiFi.softAP("Whitewater Chat");
+    IPAddress ip = WiFi.softAPIP();
+    sprintf(redirectURL, "http://%d.%d.%d.%d/", ip[0], ip[1], ip[2], ip[3]);
+    dnsServer.start(DNS_PORT, "*", ip);
+    isWifiServer = true;
+  }
 
   SPIFFS.begin();
 
@@ -101,7 +126,6 @@ void setup()
   app.use(&redirect);
 
   server.begin();
-  dnsServer.start(DNS_PORT, "*", ip);
 }
 
 // the loop function runs over and over again forever
@@ -127,7 +151,10 @@ void loop()
 
   // neopixelWrite(RGB_BUILTIN, 0, RGB_BRIGHTNESS, RGB_BRIGHTNESS);  // Green
 
-  dnsServer.processNextRequest();
+  if (isWifiServer)
+  {
+    dnsServer.processNextRequest();
+  }
 
   WiFiClient client = server.available(); // listen for incoming clients
   if (client.connected())
