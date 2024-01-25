@@ -1,7 +1,9 @@
 # couloir
+
 Local-first chat app across multiple ESP32 nodes
 
 ## TODO
+
 ```mermaid
 mindmap
   root((A single node we can use with trusted people in the lodge))
@@ -15,3 +17,17 @@ mindmap
         Modify the JS tests to hit the real server
     Hardware
 ```
+
+# Layout
+
+# Getting the ESP32-C6 Arduino Server building
+
+1. Install Arduino IDE
+2. Add the following URLs to the settings under "additional board manager URLs"
+
+- https://espressif.github.io/arduino-esp32/package_esp32_dev_index.json
+- https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
+
+3. Go to the boards manager and search for the "ESP32" extension and install
+   that.
+4. Yay!
