@@ -6,7 +6,7 @@
 // Currently the Arduino IDE doesn't support SPIFFS uploading to the ESP flash, but the following commands work, assuming the 8 MB w/SPIFFS partition scheme:
 // ~/Library/Arduino15/packages/esp32/tools/mkspiffs/0.2.3/mkspiffs -c data -b 4096 -p 256 -s 0x180000 spiffs_image.bin
 // ~/Library/Arduino15/packages/esp32/tools/esptool_py/4.6/esptool --chip esp32c6 --port /dev/cu.usbserial-10 --baud 921600 write_flash -z 0x670000 spiffs_image.bin
-// Details for the various partition schemes are in packages/esp32/hardware/esp32/3.0.0-alpha2/tools/partitions/
+// Details for the various partition schemes are in ~/Library/Arduino15/packages/esp32/hardware/esp32/3.0.0-alpha2/tools/partitions/
 // and the "Offset" and "Size" values in the above command need to be adjusted appropriately.
 #include <SPIFFS.h>
 #include <FS.h>
