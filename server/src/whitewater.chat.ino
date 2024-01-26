@@ -1,7 +1,5 @@
-#include <WiFi.h>
-#include <WiFiAP.h>
-#include <DNSServer.h>
 #include <aWOT.h>
+#include <Wifi.h>
 
 // Currently the Arduino IDE doesn't support SPIFFS uploading to the ESP flash, but the following commands work, assuming the 8 MB w/SPIFFS partition scheme:
 // ~/Library/Arduino15/packages/esp32/tools/mkspiffs/0.2.3/mkspiffs -c data -b 4096 -p 256 -s 0x180000 spiffs_image.bin
@@ -12,7 +10,7 @@
 #include <FS.h>
 #include <SPI.h>
 #include <SD.h>
-#include <secrets.h>
+#include <WifiConnection.h>
 
 #define RGB_BUILTIN 8
 #define RGB_BRIGHTNESS 10
@@ -23,60 +21,37 @@
 #define SPI_CS 15
 // SPISettings spiSettings(4000000, MSBFIRST, SPI_MODE0);
 
-#define DNS_PORT 53
 // IPAddress apIP(192, 168, 4, 1);
 
-WiFiServer server(80);
 Application app;
-DNSServer dnsServer;
+WiFiServer server(80);
 
-bool isWifiServer = false;
 int hasRead = 0;
 
 char redirectURL[30];
+WifiConnection wifi;
 
 void setup()
 {
   Serial.begin(115200);
-
-  bool isWifiClient = false;
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(ssid1, password1);
-  isWifiClient = WiFi.waitForConnectResult() == WL_CONNECTED;
-  if (!isWifiClient)
-  {
-    WiFi.mode(WIFI_STA);
-    WiFi.begin(ssid2, password2);
-    isWifiClient = WiFi.waitForConnectResult() == WL_CONNECTED;
-  }
-
-  if (isWifiClient)
-  {
-    Serial.println("Ready");
-    Serial.print("IP address: ");
-    Serial.println(WiFi.localIP());
-  }
-
-  if (!isWifiClient)
-  {
-    WiFi.softAP("Whitewater Chat");
-    IPAddress ip = WiFi.softAPIP();
-    sprintf(redirectURL, "http://%d.%d.%d.%d/", ip[0], ip[1], ip[2], ip[3]);
-    dnsServer.start(DNS_PORT, "*", ip);
-    isWifiServer = true;
-  }
+  wifi.setup();
 
   SPIFFS.begin();
 
-  // SPI.begin();
-  // Serial.println("MOSI");
-  // Serial.println(MOSI);
-  // Serial.println("UNMOSI");
-  // // Serial.printf("Ports:\nMOSI: %s\nMISO: %s\nSCK %s\nSS: %s", MOSI, MISO, SCK, SS);
+  SPI.begin();
+  Serial.println("MOSI:");
+  Serial.println(MOSI);
+  Serial.println("MISO:");
+  Serial.println(MISO);
+  Serial.println("SCK:");
+  Serial.println(SCK);
+  Serial.println("SS:");
+  Serial.println(SS);
+  Serial.println();
 
   // Serial.printf("Hello world");
   // delay(20);
-  pinMode(18, OUTPUT);
+  pinMode(SS, OUTPUT);
   // Serial.printf("step 2");
   // delay(20);
   // // SPI.beginTransaction(spiSettings);
@@ -97,7 +72,7 @@ void setup()
 
   // Serial.println("SD Card initialized.");
 
-  if (!SD.begin(18))
+  if (!SD.begin(SS))
   {
     Serial.println("Error initializing SD Card");
   }
@@ -121,7 +96,7 @@ void setup()
 
   Serial.println("tada");
 
-  app.post("/message", &handleMessage);
+  app.post("/messages", &handleMessage);
   app.use(&fileServer);
   app.use(&redirect);
 
@@ -131,6 +106,8 @@ void setup()
 // the loop function runs over and over again forever
 void loop()
 {
+  wifi.loop();
+
   if (hasRead == 0)
   {
     Serial.println("When the tough gets going, the tough use print.");
@@ -150,11 +127,6 @@ void loop()
   }
 
   // neopixelWrite(RGB_BUILTIN, 0, RGB_BRIGHTNESS, RGB_BRIGHTNESS);  // Green
-
-  if (isWifiServer)
-  {
-    dnsServer.processNextRequest();
-  }
 
   WiFiClient client = server.available(); // listen for incoming clients
   if (client.connected())
