@@ -6,13 +6,13 @@
 class WifiConnection
 {
 private:
-	bool isWifiServer = false;
-	bool isWifiClient = false;
-	DNSServer dnsServer;
+  bool isWifiServer = false;
+  bool isWifiClient = false;
+  DNSServer dnsServer;
 
 public:
-	WifiConnection();
-	void setup();
-	void loop();
+  WifiConnection();
+  void setup();
+  void loop();
 };
 #endif
