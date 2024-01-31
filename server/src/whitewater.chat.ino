@@ -74,7 +74,7 @@ void setup()
 
   // Serial.printf("Hello world");
   // delay(20);
-  pinMode(18, OUTPUT);
+  pinMode(SS, OUTPUT);
   // Serial.printf("step 2");
   // delay(20);
   // // SPI.beginTransaction(spiSettings);
@@ -95,9 +95,10 @@ void setup()
 
   // Serial.println("SD Card initialized.");
 
-  if (!SD.begin(18))
+  if (!SD.begin(SS))
   {
     Serial.println("Error initializing SD Card");
+    return;
   }
   else
   {
