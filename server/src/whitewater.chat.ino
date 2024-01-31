@@ -14,15 +14,6 @@
 #include <SD.h>
 #include <secrets.h>
 
-#define RGB_BUILTIN 8
-#define RGB_BRIGHTNESS 10
-
-#define SPI_CLK 23
-#define SPI_MOSI 17
-#define SPI_MISO 16
-#define SPI_CS 15
-// SPISettings spiSettings(4000000, MSBFIRST, SPI_MODE0);
-
 #define DNS_PORT 53
 // IPAddress apIP(192, 168, 4, 1);
 
