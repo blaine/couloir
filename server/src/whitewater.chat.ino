@@ -59,11 +59,18 @@ void setup()
 
   SPIFFS.begin();
 
+  /*
+  10 - Green  - SS
+  11 - Blue   - MOSI
+  12 - Yellow - SCK
+  13 - Orange - MISO
+  */
+
   // SPI.begin();
   // Serial.println("MOSI");
   // Serial.println(MOSI);
   // Serial.println("UNMOSI");
-  // // Serial.printf("Ports:\nMOSI: %s\nMISO: %s\nSCK %s\nSS: %s", MOSI, MISO, SCK, SS);
+  Serial.printf("Ports:\nMOSI: %d\nMISO: %d\nSCK %d\nSS: %d\n", MOSI, MISO, SCK, SS);
 
   // Serial.printf("Hello world");
   // delay(20);
