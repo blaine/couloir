@@ -25,14 +25,13 @@ WifiConnection wifi;
 
 void setup()
 {
+  neopixelWrite(RGB_BUILTIN, RGB_BRIGHTNESS, RGB_BRIGHTNESS * .75, 0); // Amber
   Serial.begin(115200);
   while (!Serial)
   {
-    ; // wait for serial port to connect.
+    delay(10); // wait for serial port to connect.
   }
   wifi.setup();
-
-  SPIFFS.begin();
 
   /*
   10 - Green  - SS
@@ -40,36 +39,9 @@ void setup()
   12 - Yellow - SCK
   13 - Orange - MISO
   */
-
-  // SPI.begin();
-  // Serial.println("MOSI");
-  // Serial.println(MOSI);
-  // Serial.println("UNMOSI");
+  SPIFFS.begin();
   Serial.printf("Ports:\nMOSI: %d\nMISO: %d\nSCK %d\nSS: %d\n", MOSI, MISO, SCK, SS);
-
-  // Serial.printf("Hello world");
-  // delay(20);
   pinMode(SS, OUTPUT);
-  // Serial.printf("step 2");
-  // delay(20);
-  // // SPI.beginTransaction(spiSettings);
-  // Serial.printf("step 3");
-  // delay(20);
-  // digitalWrite(SPI_CS, LOW);
-  // Serial.printf("step 4");
-  // SPI.begin(SPI_CLK, SPI_MISO, SPI_MOSI, SPI_CS);
-  // Serial.printf("step 5");
-  // if (!SD.begin(SPI_CS, SPI, 4000000, "/sd", 5, true)) {
-  //     Serial.println("SD Card initialization failed!");
-  //     // return;
-  // }
-  // Serial.printf("step 6");
-  // digitalWrite(SPI_CS, HIGH); // Pull CS high to disable the SD card
-  // Serial.printf("step 7");
-  // SPI.endTransaction();
-
-  // Serial.println("SD Card initialized.");
-
   if (!SD.begin(SS))
   {
     Serial.println("Error initializing SD Card");
@@ -77,7 +49,7 @@ void setup()
   }
   else
   {
-    Serial.println("Maybe initialized SD card?");
+    Serial.println("Initialized SD card");
   }
   File myFile = SD.open("/myfile.txt", FILE_WRITE);
   if (!myFile)
@@ -100,6 +72,8 @@ void setup()
   app.use(&redirect);
 
   server.begin();
+
+  neopixelWrite(RGB_BUILTIN, 0, RGB_BRIGHTNESS / 2, 0); // Green
 }
 
 // the loop function runs over and over again forever
@@ -124,8 +98,6 @@ void loop()
 
     hasRead = 1;
   }
-
-  // neopixelWrite(RGB_BUILTIN, 0, RGB_BRIGHTNESS, RGB_BRIGHTNESS);  // Green
 
   WiFiClient client = server.available(); // listen for incoming clients
   if (client.connected())
