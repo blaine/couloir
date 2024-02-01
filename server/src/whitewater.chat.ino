@@ -12,15 +12,7 @@
 #include <SD.h>
 #include <WifiConnection.h>
 
-#define RGB_BUILTIN 8
-#define RGB_BRIGHTNESS 10
-
-#define SPI_CLK 23
-#define SPI_MOSI 17
-#define SPI_MISO 16
-#define SPI_CS 15
-// SPISettings spiSettings(4000000, MSBFIRST, SPI_MODE0);
-
+#define DNS_PORT 53
 // IPAddress apIP(192, 168, 4, 1);
 
 Application app;
@@ -38,16 +30,18 @@ void setup()
 
   SPIFFS.begin();
 
-  SPI.begin();
-  Serial.println("MOSI:");
-  Serial.println(MOSI);
-  Serial.println("MISO:");
-  Serial.println(MISO);
-  Serial.println("SCK:");
-  Serial.println(SCK);
-  Serial.println("SS:");
-  Serial.println(SS);
-  Serial.println();
+  /*
+  10 - Green  - SS
+  11 - Blue   - MOSI
+  12 - Yellow - SCK
+  13 - Orange - MISO
+  */
+
+  // SPI.begin();
+  // Serial.println("MOSI");
+  // Serial.println(MOSI);
+  // Serial.println("UNMOSI");
+  Serial.printf("Ports:\nMOSI: %d\nMISO: %d\nSCK %d\nSS: %d\n", MOSI, MISO, SCK, SS);
 
   // Serial.printf("Hello world");
   // delay(20);
@@ -75,6 +69,7 @@ void setup()
   if (!SD.begin(SS))
   {
     Serial.println("Error initializing SD Card");
+    return;
   }
   else
   {
