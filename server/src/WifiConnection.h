@@ -6,7 +6,6 @@
 class WifiConnection
 {
 private:
-  bool isWifiServer = false;
   bool isWifiClient = false;
   DNSServer dnsServer;
 

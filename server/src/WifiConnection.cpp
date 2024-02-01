@@ -14,35 +14,30 @@ void WifiConnection::setup()
   this->dnsServer = dnsServer;
 
   WiFi.mode(WIFI_STA);
-  WiFi.begin(ssid1, password1);
+  Serial.print("Attempting Wifi connection to network ");
+  Serial.println(ssid);
+  WiFi.begin(ssid, password);
   this->isWifiClient = WiFi.waitForConnectResult() == WL_CONNECTED;
-
-  if (!this->isWifiClient)
-  {
-    WiFi.mode(WIFI_STA);
-    WiFi.begin(ssid2, password2);
-    this->isWifiClient = WiFi.waitForConnectResult() == WL_CONNECTED;
-  }
 
   if (this->isWifiClient)
   {
-    Serial.println("Ready");
+    Serial.println("Connected!");
     Serial.print("IP address: ");
     Serial.println(WiFi.localIP());
   }
   else
   {
+    Serial.println("Unable to connect to a known network. Starting Access Point.");
     WiFi.softAP("Whitewater Chat");
     IPAddress ip = WiFi.softAPIP();
-    sprintf("", "http://%d.%d.%d.%d/", ip[0], ip[1], ip[2], ip[3]);
+    Serial.printf("", "http://%d.%d.%d.%d/", ip[0], ip[1], ip[2], ip[3]);
     dnsServer.start(DNS_PORT, "*", ip);
-    this->isWifiServer = true;
   }
 }
 
 void WifiConnection::loop()
 {
-  if (this->isWifiServer)
+  if (!this->isWifiClient)
   {
     dnsServer.processNextRequest();
   }
