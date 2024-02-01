@@ -1,7 +1,5 @@
-#include <WiFi.h>
-#include <WiFiAP.h>
-#include <DNSServer.h>
 #include <aWOT.h>
+#include <Wifi.h>
 
 // Currently the Arduino IDE doesn't support SPIFFS uploading to the ESP flash, but the following commands work, assuming the 8 MB w/SPIFFS partition scheme:
 // ~/Library/Arduino15/packages/esp32/tools/mkspiffs/0.2.3/mkspiffs -c data -b 4096 -p 256 -s 0x180000 spiffs_image.bin
@@ -12,50 +10,27 @@
 #include <FS.h>
 #include <SPI.h>
 #include <SD.h>
-#include <secrets.h>
+#include <WifiConnection.h>
 
 #define DNS_PORT 53
 // IPAddress apIP(192, 168, 4, 1);
 
-WiFiServer server(80);
 Application app;
-DNSServer dnsServer;
+WiFiServer server(80);
 
-bool isWifiServer = false;
 int hasRead = 0;
 
 char redirectURL[30];
+WifiConnection wifi;
 
 void setup()
 {
   Serial.begin(115200);
-
-  bool isWifiClient = false;
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(ssid1, password1);
-  isWifiClient = WiFi.waitForConnectResult() == WL_CONNECTED;
-  if (!isWifiClient)
+  while (!Serial)
   {
-    WiFi.mode(WIFI_STA);
-    WiFi.begin(ssid2, password2);
-    isWifiClient = WiFi.waitForConnectResult() == WL_CONNECTED;
+    ; // wait for serial port to connect.
   }
-
-  if (isWifiClient)
-  {
-    Serial.println("Ready");
-    Serial.print("IP address: ");
-    Serial.println(WiFi.localIP());
-  }
-
-  if (!isWifiClient)
-  {
-    WiFi.softAP("Whitewater Chat");
-    IPAddress ip = WiFi.softAPIP();
-    sprintf(redirectURL, "http://%d.%d.%d.%d/", ip[0], ip[1], ip[2], ip[3]);
-    dnsServer.start(DNS_PORT, "*", ip);
-    isWifiServer = true;
-  }
+  wifi.setup();
 
   SPIFFS.begin();
 
@@ -120,7 +95,7 @@ void setup()
 
   Serial.println("tada");
 
-  app.post("/message", &handleMessage);
+  app.post("/messages", &handleMessage);
   app.use(&fileServer);
   app.use(&redirect);
 
@@ -130,6 +105,8 @@ void setup()
 // the loop function runs over and over again forever
 void loop()
 {
+  wifi.loop();
+
   if (hasRead == 0)
   {
     Serial.println("When the tough gets going, the tough use print.");
@@ -149,11 +126,6 @@ void loop()
   }
 
   // neopixelWrite(RGB_BUILTIN, 0, RGB_BRIGHTNESS, RGB_BRIGHTNESS);  // Green
-
-  if (isWifiServer)
-  {
-    dnsServer.processNextRequest();
-  }
 
   WiFiClient client = server.available(); // listen for incoming clients
   if (client.connected())
