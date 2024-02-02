@@ -12,20 +12,15 @@
 #include <SD.h>
 #include <WifiConnection.h>
 
-#define DNS_PORT 53
-// IPAddress apIP(192, 168, 4, 1);
-
 Application app;
 WiFiServer server(80);
-
-int hasRead = 0;
 
 char redirectURL[30];
 WifiConnection wifi;
 
 void setup()
 {
-  neopixelWrite(RGB_BUILTIN, RGB_BRIGHTNESS, RGB_BRIGHTNESS * .75, 0); // Amber
+  neopixelWrite(RGB_BUILTIN, RGB_BRIGHTNESS, RGB_BRIGHTNESS * .5, 0); // Amber
   Serial.begin(115200);
   while (!Serial)
   {
@@ -51,21 +46,6 @@ void setup()
   {
     Serial.println("Initialized SD card");
   }
-  File myFile = SD.open("/myfile.txt", FILE_WRITE);
-  if (!myFile)
-  {
-    Serial.println("no file");
-  }
-  else
-  {
-    Serial.println("I think I have a file.");
-  }
-  myFile.println("test! yo");
-  myFile.close();
-
-  Serial.println("well, we made it this far...");
-
-  Serial.println("tada");
 
   app.post("/messages", &handleMessage);
   app.use(&fileServer);
@@ -80,24 +60,6 @@ void setup()
 void loop()
 {
   wifi.loop();
-
-  if (hasRead == 0)
-  {
-    Serial.println("When the tough gets going, the tough use print.");
-    File readFile = SD.open("/myfile.txt", FILE_READ); // Replace 'test.txt' with your file name
-
-    // Read from the file until there's nothing else in it:
-    while (readFile.available())
-    {
-      Serial.print((char)readFile.read());
-    }
-    Serial.println("\n");
-
-    // Close the file:
-    readFile.close();
-
-    hasRead = 1;
-  }
 
   WiFiClient client = server.available(); // listen for incoming clients
   if (client.connected())
