@@ -11,6 +11,11 @@ mindmap
       Authentication?
     Server
       Implement the sync protocol in C++
+	Store message objects in `createMessage`
+	  Decide if we're going to JSON encode the message data here on the server, or on the client
+	List message files in directory in `getMessagesList`
+	Delete all message files in directory in `deleteMessages`
+	Return message bodies from GET `/messages?q=...`
 ```
 
 ## Running tests
