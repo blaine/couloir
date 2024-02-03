@@ -95,6 +95,8 @@ void WebServer::handleMessage(Request &req, Response &res)
 	Serial.println(name);
 	Serial.println(value);
 
+	// TODO: hash the data with sha256 and use that as the filename
+
 	if (!SD.exists("/chatlog"))
 	{
 		SD.open("/chatlog", FILE_WRITE).close();
