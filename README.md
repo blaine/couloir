@@ -16,6 +16,9 @@ mindmap
         List message files in directory in `getMessagesList`
         Delete all message files in directory in `deleteMessages`
         Return message bodies from GET `/messages?q=...`
+      Serve the new svelte app
+        Implement build scripts to copy the compiled app into the right place in the server source code
+        Test that it all works
 ```
 
 ## Running tests
