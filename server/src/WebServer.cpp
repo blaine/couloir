@@ -125,7 +125,7 @@ void WebServer::handleMessage(Request &req, Response &res)
 	Serial.println(name);
 	Serial.println(value);
 
-	// TODO: hash the data with sha256 and use that as the filename
+	// TODO use the real data here.
 	String body = "{ message: 'fake' }";
 	String id = generateSHA256Hash(body);
 
