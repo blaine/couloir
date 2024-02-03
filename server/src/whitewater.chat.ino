@@ -17,12 +17,8 @@ WebServer webServer;
 
 void setup()
 {
-  neopixelWrite(RGB_BUILTIN, RGB_BRIGHTNESS, RGB_BRIGHTNESS * .75, 0); // Amber
+  neopixelWrite(RGB_BUILTIN, RGB_BRIGHTNESS, RGB_BRIGHTNESS * .5, 0); // Amber
   Serial.begin(115200);
-  while (!Serial)
-  {
-    delay(10); // wait for serial port to connect.
-  }
   wifi.setup();
 
   /*
