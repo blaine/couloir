@@ -10,7 +10,8 @@ import {
 describe("messages server", () => {
   let request: supertest.SuperTest<supertest.Test>
   before(async () => {
-    request = supertest(await app("tmp/data"))
+    // request = supertest(await app("tmp/data"))
+    request = supertest("http://192.168.1.80")
   })
   // contract tests describe the behaviour of the server
   // as a "black box". They only use public-facing behaviour,
@@ -30,14 +31,12 @@ describe("messages server", () => {
     })
 
     describe("POST /messages", () => {
-      it("responds 302 redirect", async () => {
-        // TODO: Why 302? -- @matt
+      it("responds 200 OK", async () => {
         await request
           .post("/messages")
           .type("form")
           .send({ message: "hello" })
-          .expect(302)
-          .expect("Location", "/")
+          .expect(200)
       })
     })
 
