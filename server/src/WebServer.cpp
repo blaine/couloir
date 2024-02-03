@@ -1,6 +1,7 @@
 #include <FS.h>
 #include <SD.h>
 #include <SPIFFS.h>
+#include <Crypto.h>
 #include "WebServer.h"
 #include "fileServer.h"
 
@@ -81,6 +82,35 @@ void WebServer::loop()
 	}
 }
 
+String generateSHA256Hash(String input)
+{
+	SHA256 sha256;
+	uint8_t *hash;
+
+	// Allocate memory for the hash (32 bytes)
+	hash = (uint8_t *)malloc(32);
+
+	// Update hash with the input data
+	sha256.doUpdate((const uint8_t *)input.c_str(), input.length());
+
+	// Finalize the hash
+	sha256.doFinal(hash);
+
+	// Convert the hash to a hex string
+	String result = "";
+	for (int i = 0; i < 32; i++)
+	{
+		char buf[3];
+		sprintf(buf, "%02x", hash[i]);
+		result += buf;
+	}
+
+	// Free allocated memory
+	free(hash);
+
+	return result;
+}
+
 void WebServer::handleMessage(Request &req, Response &res)
 {
 	char name[8];
@@ -96,21 +126,19 @@ void WebServer::handleMessage(Request &req, Response &res)
 	Serial.println(value);
 
 	// TODO: hash the data with sha256 and use that as the filename
+	String body = "{ message: 'fake' }";
+	String id = generateSHA256Hash(body);
 
-	if (!SD.exists("/chatlog"))
-	{
-		SD.open("/chatlog", FILE_WRITE).close();
-	}
+	Serial.println(id);
 
-	File file = SD.open("/chatlog", FILE_APPEND);
-
+	File file = SD.open("/" + id, FILE_WRITE);
 	if (!file)
 	{
 		res.sendStatus(500);
 		return;
 	}
 
-	file.printf("{\"message\": \"%s\"}\n", value);
+	file.print(body);
 	file.close();
 
 	res.sendStatus(200);
