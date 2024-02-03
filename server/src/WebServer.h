@@ -18,7 +18,6 @@ private:
 	static void handleMessage(Request &req, Response &res);
 	static String getContentType(String filename);
 	static void redirect(Request &req, Response &res);
-	static void fileServer(Request &req, Response &res);
 };
 
 #endif
