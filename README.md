@@ -10,13 +10,19 @@ mindmap
     Client
       Authentication?
     Server
-      Implement the sync protocol
-        Make that easier/faster to hack on
-          Simulator?
-          OTA updates?
-        Modify the JS tests to hit the real server
-    Hardware
+      Implement the sync protocol in C++
 ```
+
+## Running tests
+
+From the root of the project:
+
+    pnpm install
+    pnpm test
+
+The [`fake-server`](./fake-server) project contains contract tests that can be run againts a running ESP32 device. To run those tests too, set the `TEST_REAL_SERVER` env var.
+
+    TEST_REAL_SERVER=1 pnpm test
 
 # Layout
 

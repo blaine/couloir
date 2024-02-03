@@ -114,7 +114,7 @@ export default async (dataPath: string) => {
     let message = JSON.stringify(req.body)
     let hash = crypto.createHash("sha256").update(message).digest("hex")
     await fs.writeFile(`${dataPath}/${hash}`, JSON.stringify(req.body))
-    res.redirect("/")
+    res.sendStatus(200)
   })
 
   return app
