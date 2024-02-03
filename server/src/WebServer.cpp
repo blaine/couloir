@@ -92,8 +92,6 @@ void WebServer::handleMessage(Request &req, Response &res)
 		return res.sendStatus(400);
 	}
 
-	SHA256 sha256;
-
 	Serial.println(name);
 	Serial.println(value);
 
