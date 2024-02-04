@@ -13,6 +13,7 @@ export default async (dataPath: string) => {
 
   app.use(express.static(path.join(__dirname, "..", "..", "client", "dist")))
   app.use(express.urlencoded({ extended: false }))
+  app.use(express.json())
 
   app.delete("/messages", async (_, res) => {
     const entries = await fs.readdir(dataPath)
@@ -111,8 +112,10 @@ export default async (dataPath: string) => {
   app.post("/messages", async (req, res) => {
     // we do the stringification server-side to ensure that the client can't send
     // a malformed message
-    let message = JSON.stringify(req.body)
-    let hash = crypto.createHash("sha256").update(message).digest("hex")
+    let hash = crypto
+      .createHash("sha256")
+      .update(JSON.stringify(req.body))
+      .digest("hex")
     await fs.writeFile(`${dataPath}/${hash}`, JSON.stringify(req.body))
     res.sendStatus(200)
   })

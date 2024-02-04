@@ -25,7 +25,7 @@ for (const type of ["fake", "real"]) {
     // and could be run against other implementations of the server.
     describe("contract", () => {
       const postMessage = async (message: string) => {
-        await request.post("/messages").type("form").send({ message })
+        await request.post("/messages").type("json").send({ message })
       }
 
       const reset = async () => {
@@ -41,7 +41,7 @@ for (const type of ["fake", "real"]) {
         it("responds 200 OK", async () => {
           await request
             .post("/messages")
-            .type("form")
+            .type("json")
             .send({ message: "hello" })
             .expect(200)
         })

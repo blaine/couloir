@@ -90,9 +90,9 @@ export function getMessageStore() {
     for (const message of unsent) {
       const response = await fetch("/messages", {
         method: "POST",
-        body: new URLSearchParams(message.toJSON()),
+        body: JSON.stringify(message),
         headers: {
-          "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+          "Content-Type": "application/json; charset=UTF-8",
         },
       })
       update((messages) =>
@@ -163,9 +163,9 @@ export function getMessageStore() {
     send: async (message: Message) => {
       const response = await fetch("/messages", {
         method: "POST",
-        body: new URLSearchParams(message.toJSON()),
+        body: JSON.stringify(message),
         headers: {
-          "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+          "Content-Type": "application/json; charset=UTF-8",
         },
       })
       update((messages) => [...messages, message.withSentStatus(response.ok)])
