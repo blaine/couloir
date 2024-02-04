@@ -47,27 +47,19 @@ void logRequest(Request &req, Response &res)
 
 void deleteMessages(Request &req, Response &res)
 {
-	// TODO: delete all message files
+	File dir = SD.open("/");
+	while (File entry = dir.openNextFile())
+	{
+		Serial.println("Deleting " + String(entry.path()));
+		SD.remove(entry.path());
+	}
 	res.sendStatus(200);
 }
 
 void createMessage(Request &req, Response &res)
 {
-	char name[8];
-	char value[200];
-
-	if (!req.form(name, 8, value, 200))
-	{
-		Serial.println("well this is a stupid place to fail");
-		return res.sendStatus(400);
-	}
-
-	Serial.println(name);
-	Serial.println(value);
-
-	// TODO use the real data here.
-	String body = "{ message: 'fake' }";
-	String id = generateMessageId(body);
+	String message = req.readString();
+	String id = generateMessageId(message);
 
 	Serial.println(id);
 
@@ -78,16 +70,35 @@ void createMessage(Request &req, Response &res)
 		return;
 	}
 
-	file.print(body);
+	file.print(message);
 	file.close();
 
-	res.sendStatus(200);
+	res.status(200);
+	res.end();
 }
 
 void getMessagesList(Request &req, Response &res)
 {
-	// TODO: list all message files, sorted alphabetically
-	res.print("");
+	File dir = SD.open("/");
+	while (true)
+	{
+		File entry = dir.openNextFile();
+
+		if (!entry)
+		{
+			// no more files
+			break;
+		}
+
+		Serial.print(entry.name());
+		if (!entry.isDirectory())
+		{
+			res.println(entry.name());
+		}
+
+		entry.close();
+	}
+	// TODO: sort lphabetically
 	res.status(200);
 	res.end();
 }
