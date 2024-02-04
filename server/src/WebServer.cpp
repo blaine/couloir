@@ -45,15 +45,39 @@ void logRequest(Request &req, Response &res)
 	Serial.println(req.path());
 }
 
+bool deleteContentsOf(File dir)
+{
+	bool result = true;
+	while (File entry = dir.openNextFile())
+	{
+		if (entry.isDirectory())
+		{
+			Serial.println("Deleting directory " + String(entry.path()));
+			result = result && deleteContentsOf(entry);
+			SD.rmdir(entry.path());
+		}
+		else
+		{
+			Serial.println("Deleting file " + String(entry.path()));
+			result = result && SD.remove(entry.path());
+		}
+		entry.close();
+	}
+	return result;
+}
+
 void deleteMessages(Request &req, Response &res)
 {
 	File dir = SD.open("/");
-	while (File entry = dir.openNextFile())
+	if (deleteContentsOf(dir))
 	{
-		Serial.println("Deleting " + String(entry.path()));
-		SD.remove(entry.path());
+		res.status(200);
 	}
-	res.sendStatus(200);
+	else
+	{
+		res.status(500);
+	}
+	res.end();
 }
 
 void createMessage(Request &req, Response &res)
@@ -80,22 +104,10 @@ void createMessage(Request &req, Response &res)
 void getMessagesList(Request &req, Response &res)
 {
 	File dir = SD.open("/");
-	while (true)
+	while (File entry = dir.openNextFile())
 	{
-		File entry = dir.openNextFile();
-
-		if (!entry)
-		{
-			// no more files
-			break;
-		}
-
 		Serial.print(entry.name());
-		if (!entry.isDirectory())
-		{
-			res.println(entry.name());
-		}
-
+		res.println(entry.name());
 		entry.close();
 	}
 	// TODO: sort lphabetically
