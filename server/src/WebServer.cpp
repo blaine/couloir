@@ -77,7 +77,6 @@ void deleteMessages(Request &req, Response &res)
 	{
 		res.status(500);
 	}
-	res.end();
 }
 
 void createMessage(Request &req, Response &res)
@@ -98,7 +97,6 @@ void createMessage(Request &req, Response &res)
 	file.close();
 
 	res.status(200);
-	res.end();
 }
 
 void getMessages(Request &req, Response &res)
@@ -118,7 +116,6 @@ void getMessagesList(Request &req, Response &res)
 	}
 	// TODO: sort lphabetically
 	res.status(200);
-	res.end();
 }
 
 WebServer::WebServer() : app(), server(80) {}
