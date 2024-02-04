@@ -101,6 +101,12 @@ void createMessage(Request &req, Response &res)
 	res.end();
 }
 
+void getMessages(Request &req, Response &res)
+{
+	res.status(400);
+	res.print("Invalid range");
+}
+
 void getMessagesList(Request &req, Response &res)
 {
 	File dir = SD.open("/");
@@ -120,6 +126,7 @@ WebServer::WebServer() : app(), server(80) {}
 void WebServer::setup()
 {
 	app.use(&logRequest);
+	app.get("/messages", &getMessages);
 	app.del("/messages", &deleteMessages);
 	app.post("/messages", &createMessage);
 	app.get("/messages-list", &getMessagesList);
