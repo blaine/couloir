@@ -102,8 +102,97 @@ void createMessage(Request &req, Response &res)
 
 void getMessages(Request &req, Response &res)
 {
-	res.status(400);
-	res.print("Invalid range");
+	char *ranges;
+	req.query("q", ranges, 1024);
+	if (strlen(ranges) == 0)
+	{
+		res.status(400);
+		res.print("Invalid query");
+		return;
+	}
+
+	// count messages
+	int count = 0;
+	forEachFileIn(
+			"/",
+			[&count](File entry)
+			{ count++; });
+
+	char *etag;
+	req.header("If-Match", etag, 1024);
+
+	// If the client is requesting messages but the messages-list they're
+	// requesting against doesn't match our current, return a 412, at which point
+	// the client can try again with the new messages-list
+	if (strlen(etag) == 0 || strcmp(etag, String(count).c_str()) != 0)
+	{
+		res.status(412);
+		res.sprintf("It looks like your messages-list is out of date. Pass the 'if-match' header with the current messages-list count (got %s, expected %s)", etag, String(count).c_str());
+		return;
+	}
+
+	// list message IDs
+	String ids[count];
+	int i = 0;
+	forEachFileIn(
+			"/",
+			[&ids, &i](File entry)
+			{
+				ids[i] = entry.name();
+				i++;
+			});
+
+	// sort and return
+	ace_sorting::shellSortKnuth(ids, count);
+
+  char *range;
+  range = strtok(ranges, ",");
+  while (range != NULL)
+	{
+		int start, end;
+		if (sscanf(range, "%d-%d", &start, &end) == 2)
+		{
+			if (start < 0 || start >= count || end < 0 || end >= count || start > end)
+			{
+				res.status(400);
+				res.print("Invalid range");
+				return;
+			}
+
+      /*
+
+			this is interesting, copilot just autofilled this and maybe it's the right
+			way to do it? but also more complicated and just sending a bunch of newline
+			separated messages seems fine?
+
+			// res.status(206);
+			// res.set("Content-Range", String(start) + "-" + String(end) + "/" + String(count));
+			// res.set("ETag", String(count));
+			// res.set("Content-Length", String(end - start + 1));
+			// res.flush();
+			*/
+
+			for (int i = start; i <= end; i++)
+			{
+				File file = SD.open("/" + ids[i]);
+				while (file.available())
+				{
+					res.write(file.read());
+				}
+				file.close();
+				res.write("\n");
+			}
+		}
+		else
+		{
+			res.status(400);
+			res.sprintf("Invalid range encountered: %s", range);
+			return;
+		}
+		range = strtok(NULL, ",");
+	}
+
+	res.status(200);
 }
 
 using YieldsFile = std::function<void(File)>;
