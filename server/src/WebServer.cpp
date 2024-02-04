@@ -1,6 +1,7 @@
 #include <FS.h>
 #include <SD.h>
 #include <SPIFFS.h>
+#include <AceSorting.h>
 #include "WebServer.h"
 #include "fileServer.h"
 #include "generateMessageId.h"
@@ -105,17 +106,54 @@ void getMessages(Request &req, Response &res)
 	res.print("Invalid range");
 }
 
-void getMessagesList(Request &req, Response &res)
+using YieldsFile = std::function<void(File)>;
+
+void forEachFileIn(String path, YieldsFile callback)
 {
-	File dir = SD.open("/");
+	File dir = SD.open(path);
 	while (File entry = dir.openNextFile())
 	{
-		Serial.print(entry.name());
-		res.println(entry.name());
+		callback(entry);
 		entry.close();
 	}
-	// TODO: sort lphabetically
+}
+
+void getMessagesList(Request &req, Response &res)
+{
+	// count messages
+	int count = 0;
+	forEachFileIn(
+			"/",
+			[&count](File entry)
+			{ count++; });
+
+	// list message IDs
+	String ids[count];
+	int i = 0;
+	forEachFileIn(
+			"/",
+			[&ids, &i](File entry)
+			{
+				ids[i] = entry.name();
+				i++;
+			});
+
+	// sort and return
+	ace_sorting::shellSortKnuth(ids, count);
+	for (int i = 0; i < count; i++)
+	{
+		Serial.println(ids[i]);
+		res.print(ids[i]);
+		// Simulate ids.join("\n") in JavaScript. This is probably silly and we should just
+		// have the clients be able to cope with a trailing newline.
+		if (i < count - 1)
+		{
+			res.print("\n");
+		}
+	}
 	res.status(200);
+	res.flush();
+	res.end();
 }
 
 WebServer::WebServer() : app(), server(80) {}
