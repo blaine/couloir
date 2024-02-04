@@ -11,10 +11,6 @@ mindmap
       Authentication?
     Server
       Implement the sync protocol in C++
-        Store message objects in `createMessage`
-          Decide if we're going to JSON encode the message data here, or move it on the client
-        List message files in directory in `getMessagesList`
-        Delete all message files in directory in `deleteMessages`
         Return message bodies from GET `/messages?q=...`
       Serve the new svelte app
         Implement build scripts to copy the compiled app into the right place in the server source code
