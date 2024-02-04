@@ -59,14 +59,11 @@ for (const type of ["fake", "real"]) {
         })
 
         context("when a few messages have been posted", () => {
-          before(
-            async () =>
-              await Promise.all([
-                reset(),
-                postMessage("hello"),
-                postMessage("world"),
-              ])
-          )
+          before(async () => {
+            await reset()
+            await postMessage("hello")
+            await postMessage("world")
+          })
           it("responds with a newline-separated list of the message IDs as text", async () => {
             const response = await request.get("/messages-list")
             assertThat(
