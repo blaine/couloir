@@ -43,7 +43,7 @@ void logRequest(Request &req, Response &res)
 	}
 	}
 
-	Serial.println(req.path());
+	Serial.println(req.path() + String(req.query()));
 }
 
 bool deleteContentsOf(File dir)
