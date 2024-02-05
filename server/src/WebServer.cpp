@@ -100,9 +100,21 @@ void createMessage(Request &req, Response &res)
 	res.status(200);
 }
 
+using YieldsFile = std::function<void(File)>;
+
+void forEachFileIn(String path, YieldsFile callback)
+{
+	File dir = SD.open(path);
+	while (File entry = dir.openNextFile())
+	{
+		callback(entry);
+		entry.close();
+	}
+}
+
 void getMessages(Request &req, Response &res)
 {
-	char *ranges;
+	char ranges[1024];
 	req.query("q", ranges, 1024);
 	if (strlen(ranges) == 0)
 	{
@@ -118,8 +130,7 @@ void getMessages(Request &req, Response &res)
 			[&count](File entry)
 			{ count++; });
 
-	char *etag;
-	req.header("If-Match", etag, 1024);
+	char *etag = req.get("If-Match");
 
 	// If the client is requesting messages but the messages-list they're
 	// requesting against doesn't match our current, return a 412, at which point
@@ -127,7 +138,7 @@ void getMessages(Request &req, Response &res)
 	if (strlen(etag) == 0 || strcmp(etag, String(count).c_str()) != 0)
 	{
 		res.status(412);
-		res.sprintf("It looks like your messages-list is out of date. Pass the 'if-match' header with the current messages-list count (got %s, expected %s)", etag, String(count).c_str());
+		res.printf("It looks like your messages-list is out of date. Pass the 'if-match' header with the current messages-list count (got %s, expected %s)", etag, String(count).c_str());
 		return;
 	}
 
@@ -145,9 +156,9 @@ void getMessages(Request &req, Response &res)
 	// sort and return
 	ace_sorting::shellSortKnuth(ids, count);
 
-  char *range;
-  range = strtok(ranges, ",");
-  while (range != NULL)
+	char *range;
+	range = strtok(ranges, ",");
+	while (range != NULL)
 	{
 		int start, end;
 		if (sscanf(range, "%d-%d", &start, &end) == 2)
@@ -159,7 +170,7 @@ void getMessages(Request &req, Response &res)
 				return;
 			}
 
-      /*
+			/*
 
 			this is interesting, copilot just autofilled this and maybe it's the right
 			way to do it? but also more complicated and just sending a bunch of newline
@@ -180,31 +191,19 @@ void getMessages(Request &req, Response &res)
 					res.write(file.read());
 				}
 				file.close();
-				res.write("\n");
+				res.println("");
 			}
 		}
 		else
 		{
 			res.status(400);
-			res.sprintf("Invalid range encountered: %s", range);
+			res.printf("Invalid range encountered: %s", range);
 			return;
 		}
 		range = strtok(NULL, ",");
 	}
 
 	res.status(200);
-}
-
-using YieldsFile = std::function<void(File)>;
-
-void forEachFileIn(String path, YieldsFile callback)
-{
-	File dir = SD.open(path);
-	while (File entry = dir.openNextFile())
-	{
-		callback(entry);
-		entry.close();
-	}
 }
 
 void getMessagesList(Request &req, Response &res)

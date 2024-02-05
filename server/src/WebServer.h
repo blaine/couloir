@@ -15,8 +15,6 @@ private:
 	Application app;
 	WiFiServer server;
 
-	static void handleMessage(Request &req, Response &res);
-	static String getContentType(String filename);
 	static void redirect(Request &req, Response &res);
 };
 
