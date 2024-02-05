@@ -67,6 +67,18 @@ bool deleteContentsOf(File dir)
 	return result;
 }
 
+using YieldsFile = std::function<void(File)>;
+
+void forEachFileIn(String path, YieldsFile callback)
+{
+	File dir = SD.open(path);
+	while (File entry = dir.openNextFile())
+	{
+		callback(entry);
+		entry.close();
+	}
+}
+
 void deleteMessages(Request &req, Response &res)
 {
 	File dir = SD.open("/");
@@ -118,8 +130,7 @@ void getMessages(Request &req, Response &res)
 			[&count](File entry)
 			{ count++; });
 
-	char *etag;
-	req.header("If-Match", etag, 1024);
+	char *etag = req.get("If-Match");
 
 	// If the client is requesting messages but the messages-list they're
 	// requesting against doesn't match our current, return a 412, at which point
@@ -127,7 +138,7 @@ void getMessages(Request &req, Response &res)
 	if (strlen(etag) == 0 || strcmp(etag, String(count).c_str()) != 0)
 	{
 		res.status(412);
-		res.sprintf("It looks like your messages-list is out of date. Pass the 'if-match' header with the current messages-list count (got %s, expected %s)", etag, String(count).c_str());
+		res.printf("It looks like your messages-list is out of date. Pass the 'if-match' header with the current messages-list count (got %s, expected %d)", etag, count);
 		return;
 	}
 
@@ -180,13 +191,13 @@ void getMessages(Request &req, Response &res)
 					res.write(file.read());
 				}
 				file.close();
-				res.write("\n");
+				res.print("\n");
 			}
 		}
 		else
 		{
 			res.status(400);
-			res.sprintf("Invalid range encountered: %s", range);
+			res.printf("Invalid range encountered: %s", range);
 			return;
 		}
 		range = strtok(NULL, ",");
@@ -195,17 +206,6 @@ void getMessages(Request &req, Response &res)
 	res.status(200);
 }
 
-using YieldsFile = std::function<void(File)>;
-
-void forEachFileIn(String path, YieldsFile callback)
-{
-	File dir = SD.open(path);
-	while (File entry = dir.openNextFile())
-	{
-		callback(entry);
-		entry.close();
-	}
-}
 
 void getMessagesList(Request &req, Response &res)
 {
@@ -247,8 +247,11 @@ void getMessagesList(Request &req, Response &res)
 
 WebServer::WebServer() : app(), server(80) {}
 
+char etag[1024];
+
 void WebServer::setup()
 {
+	app.header("If-Match", etag, 16);
 	app.use(&logRequest);
 	app.get("/messages", &getMessages);
 	app.del("/messages", &deleteMessages);
