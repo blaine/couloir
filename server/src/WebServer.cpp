@@ -114,7 +114,7 @@ void createMessage(Request &req, Response &res)
 
 void getMessages(Request &req, Response &res)
 {
-	char *ranges;
+	char ranges[1024];
 	req.query("q", ranges, 1024);
 	if (strlen(ranges) == 0)
 	{
@@ -156,9 +156,9 @@ void getMessages(Request &req, Response &res)
 	// sort and return
 	ace_sorting::shellSortKnuth(ids, count);
 
-  char *range;
-  range = strtok(ranges, ",");
-  while (range != NULL)
+	char *range;
+	range = strtok(ranges, ",");
+	while (range != NULL)
 	{
 		int start, end;
 		if (sscanf(range, "%d-%d", &start, &end) == 2)
@@ -170,7 +170,7 @@ void getMessages(Request &req, Response &res)
 				return;
 			}
 
-      /*
+			/*
 
 			this is interesting, copilot just autofilled this and maybe it's the right
 			way to do it? but also more complicated and just sending a bunch of newline
@@ -205,7 +205,6 @@ void getMessages(Request &req, Response &res)
 
 	res.status(200);
 }
-
 
 void getMessagesList(Request &req, Response &res)
 {
