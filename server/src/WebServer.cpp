@@ -3,9 +3,9 @@
 #include <SPIFFS.h>
 #include <AceSorting.h>
 #include "WebServer.h"
-#include "fileServer.h"
 #include "generateMessageId.h"
-#include "logRequest.h"
+#include "middleWare/fileServer.h"
+#include "middleWare/logRequest.h"
 
 bool deleteContentsOf(File dir)
 {
