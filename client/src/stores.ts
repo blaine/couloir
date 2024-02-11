@@ -1,4 +1,5 @@
 import { get, writable } from "svelte/store"
+import { sha256 } from "hash-wasm"
 
 function localStorageStore({
   storageKey,
@@ -71,11 +72,7 @@ export class Message {
   }
 
   public async toHash(): Promise<string> {
-    const json = JSON.stringify(this)
-    const msgUint8 = new TextEncoder().encode(json) // encode as (utf-8) Uint8Array
-    const hashBuffer = await crypto.subtle.digest("SHA-256", msgUint8) // hash the message
-    const hashArray = Array.from(new Uint8Array(hashBuffer)) // convert buffer to byte array
-    return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("") // convert bytes to hex string
+    return sha256(JSON.stringify(this))
   }
 }
 
