@@ -28,7 +28,7 @@ void WifiConnection::setup()
   else
   {
     Serial.println("Unable to connect to a known network. Starting Access Point.");
-    WiFi.softAP("Whitewater Chat");
+    WiFi.softAP("Couloir Chat");
     IPAddress ip = WiFi.softAPIP();
     Serial.printf("", "http://%d.%d.%d.%d/", ip[0], ip[1], ip[2], ip[3]);
     dnsServer.start(DNS_PORT, "*", ip);
